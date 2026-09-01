@@ -1,0 +1,25 @@
+services:
+  alma-technology:
+    build: .
+    container_name: alma-technology
+    env_file:
+      - .env.local
+    environment:
+      NODE_ENV: production
+      PORT: "7800"
+      HOSTNAME: 0.0.0.0
+      SQLITE_PATH: /app/data/crm.sqlite
+    expose:
+      - "7800"
+    networks:
+      - nutrifit
+    restart: unless-stopped
+    volumes:
+      - alma_crm_data:/app/data
+
+networks:
+  nutrifit:
+    external: true
+
+volumes:
+  alma_crm_data:

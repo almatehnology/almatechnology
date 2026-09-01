@@ -1,0 +1,152 @@
+{
+  "Meta": {
+    "title": "alma.technology — IT Company | Software Development",
+    "description": "IT company with 17 years of experience. Telegram bots, web applications, complex IT products. Full-cycle development."
+  },
+  "Nav": {
+    "services": "Services",
+    "portfolio": "Portfolio",
+    "process": "Process",
+    "reviews": "Reviews",
+    "contact": "Contact"
+  },
+  "Hero": {
+    "badge": "IT Company • 17 Years of Experience",
+    "title": "We Build Technology Products That Solve Business Challenges",
+    "subtitle": "Telegram bots, web applications, complex IT systems — from idea to launch and beyond",
+    "cta": "Discuss Your Project",
+    "stats_projects": "50+",
+    "stats_projects_label": "projects",
+    "stats_years": "17",
+    "stats_years_label": "years of experience",
+    "stats_clients": "30+",
+    "stats_clients_label": "clients"
+  },
+  "Services": {
+    "heading": "What We Do",
+    "subtitle": "Full-cycle development — from planning to launch and support",
+    "bots": {
+      "title": "Telegram Bots",
+      "description": "Business process automation, payment processing, CRM and third-party service integration"
+    },
+    "webapps": {
+      "title": "Web Applications",
+      "description": "SPA, PWA, admin panels and dashboards built with React and Next.js"
+    },
+    "products": {
+      "title": "Complex IT Products",
+      "description": "SaaS platforms, marketplaces, API integrations and high-load systems"
+    },
+    "websites": {
+      "title": "Websites & Landing Pages",
+      "description": "Corporate websites, e-commerce stores and high-converting landing pages"
+    },
+    "support": {
+      "title": "Support & Maintenance",
+      "description": "Technical support, performance optimization and ongoing project development"
+    }
+  },
+  "Advantages": {
+    "heading": "Why Choose Us",
+    "subtitle": "Experience and approach that make the difference",
+    "experience": {
+      "title": "17 Years in Development",
+      "description": "Deep expertise proven by hundreds of successful projects"
+    },
+    "stack": {
+      "title": "Modern Tech Stack",
+      "description": "React, Node.js, Python, PostgreSQL, Docker and other cutting-edge technologies"
+    },
+    "fullcycle": {
+      "title": "Full Cycle",
+      "description": "From analysis and design to development, testing and deployment"
+    },
+    "transparent": {
+      "title": "Transparent Process",
+      "description": "Regular demos, repository access and direct communication with developers"
+    },
+    "fast": {
+      "title": "Fast Delivery",
+      "description": "Clear planning and agile approach allow us to launch MVPs in 2–4 weeks"
+    },
+    "afterlaunch": {
+      "title": "Post-Launch Support",
+      "description": "Monitoring, updates and rapid issue resolution"
+    }
+  },
+  "Portfolio": {
+    "heading": "Our Projects",
+    "subtitle": "Selected case studies from our portfolio",
+    "view": "View Details"
+  },
+  "Process": {
+    "heading": "How We Work",
+    "subtitle": "Transparent process from first call to launch",
+    "steps": {
+      "brief": {
+        "title": "Brief & Analytics",
+        "description": "We study the task, define goals, analyze competitors and create specifications"
+      },
+      "design": {
+        "title": "Architecture & Design",
+        "description": "We develop the architecture, interface prototypes and database schema"
+      },
+      "development": {
+        "title": "Development",
+        "description": "We write clean, testable code with weekly demo sessions"
+      },
+      "testing": {
+        "title": "Testing",
+        "description": "Functional, load and UX testing across all devices"
+      },
+      "launch": {
+        "title": "Launch & Support",
+        "description": "Production deployment, monitoring and responsive technical support"
+      }
+    }
+  },
+  "Testimonials": {
+    "heading": "Client Reviews",
+    "subtitle": "What our clients say about working with us"
+  },
+  "Contact": {
+    "heading": "Let's Discuss Your Project",
+    "subtitle": "Leave a request and we'll get back to you within 24 hours",
+    "name": "Your Name",
+    "email": "Email",
+    "phone": "Phone",
+    "message": "Tell us about your project",
+    "budget": "Budget",
+    "budgetPlaceholder": "For example: $1,000 — $5,000",
+    "submit": "Send Request",
+    "success": "Thank you! We'll get back to you within 24 hours.",
+    "error": "Something went wrong. Please try again.",
+    "validation": {
+      "nameRequired": "Please enter your name",
+      "emailRequired": "Please enter your email",
+      "emailInvalid": "Invalid email address",
+      "messageRequired": "Please describe your project"
+    }
+  },
+  "Footer": {
+    "description": "IT company with 17 years of development experience. We build technology products that solve business challenges.",
+    "services": "Services",
+    "company": "Company",
+    "contacts": "Contacts",
+    "about": "About Us",
+    "portfolio": "Portfolio",
+    "process": "Process",
+    "reviews": "Reviews",
+    "serviceBots": "Telegram Bots",
+    "serviceWebapps": "Web Applications",
+    "serviceProducts": "Complex IT Products",
+    "serviceWebsites": "Websites & Landing Pages",
+    "blog": "Blog",
+    "privacy": "Privacy Policy",
+    "copyright": "© {year} alma.technology. All rights reserved."
+  },
+  "NotFound": {
+    "title": "Page not found",
+    "home": "Back to home"
+  }
+}

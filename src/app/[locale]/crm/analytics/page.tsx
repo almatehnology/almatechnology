@@ -1,0 +1,37 @@
+import Link from 'next/link';
+import { CrmShell } from '@/components/crm/CrmShell';
+import { getKpiReport, type AnalyticsPeriod } from '@/lib/crm';
+import { salesRoleLabels } from '@/lib/crm-format';
+import { requireUser } from '@/lib/session';
+
+const periodLabels: Record<AnalyticsPeriod, string> = { today: 'Сегодня', week: 'Неделя', month: 'Месяц', all: 'Всё время' };
+const fmt = (value: number) => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 }).format(value);
+
+function Metric({ label, value, hint, good }: { label: string; value: string | number; hint?: string; good?: boolean }) {
+  return <div className={`crm-metric ${good === true ? 'good' : good === false ? 'bad' : ''}`}><span>{label}</span><strong>{value}</strong>{hint && <small>{hint}</small>}</div>;
+}
+
+export default async function AnalyticsPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ period?: string }> }) {
+  const { locale } = await params;
+  const user = await requireUser(locale);
+  const requested = (await searchParams).period;
+  const period: AnalyticsPeriod = ['today', 'week', 'month', 'all'].includes(requested || '') ? requested as AnalyticsPeriod : 'month';
+  const report = getKpiReport(user, period);
+  const base = `/${locale}/crm/analytics`;
+
+  return <CrmShell user={user} locale={locale}><div className="crm-page">
+    <header className="crm-page-header"><div><p className="crm-eyebrow">АНАЛИТИКА</p><h1>KPI и экономика продаж</h1><p>Показатели считаются из этапов, проверок, задач и фактически полученных оплат. Ручного «рисования» итогов нет.</p></div></header>
+    <div className="crm-tabs">{Object.entries(periodLabels).map(([key, label]) => <Link key={key} href={`${base}?period=${key}`} className={period === key ? 'active' : ''}>{label}</Link>)}</div>
+
+    {report.people.map((person) => <section key={person.id} className="crm-section crm-person-kpi"><div className="crm-section-heading"><h2>{person.name}</h2><span>{person.salesRoles.map((role) => salesRoleLabels[role]).join(' · ') || 'Рабочие роли не назначены'}</span></div>
+      {person.salesRoles.includes('RESEARCHER') && <div className="crm-kpi-block"><h3>Lead Researcher</h3><div className="crm-metric-grid"><Metric label="Новые лиды" value={person.researcher.submitted} hint="дневной ориентир: 20" good={period === 'today' ? person.researcher.submitted >= 20 : undefined} /><Metric label="Проверено Verifier" value={person.researcher.reviewed} /><Metric label="Валидные" value={person.researcher.valid} /><Metric label="Quality KPI" value={`${person.researcher.validityRate}%`} hint="цель ≥ 75%" good={person.researcher.reviewed ? person.researcher.validityRate >= 75 : undefined} /></div></div>}
+      {person.salesRoles.includes('VERIFIER') && <div className="crm-kpi-block"><h3>Verifier</h3><div className="crm-metric-grid"><Metric label="Проверки" value={person.verifier.reviews} hint="дневной ориентир: 50" good={period === 'today' ? person.verifier.reviews >= 50 : undefined} /><Metric label="Принято" value={person.verifier.accepted} /><Metric label="Accuracy по оценке SDR" value={`${person.verifier.accuracy}%`} hint="цель ≥ 85%" good={person.verifier.audited ? person.verifier.accuracy >= 85 : undefined} /><Metric label="False Positive Rate" value={`${person.verifier.falsePositiveRate}%`} hint="максимум 15%" good={person.verifier.audited ? person.verifier.falsePositiveRate <= 15 : undefined} /></div></div>}
+      {person.salesRoles.includes('SDR') && <div className="crm-kpi-block"><h3>SDR / Setter</h3><div className="crm-metric-grid"><Metric label="Новые контакты" value={person.sdr.contacts} hint="дневной ориентир: 30" good={period === 'today' ? person.sdr.contacts >= 30 : undefined} /><Metric label="Ответы / Reply Rate" value={`${person.sdr.replies} · ${person.sdr.replyRate}%`} /><Metric label="Положительные / Positive Rate" value={`${person.sdr.interested} · ${person.sdr.positiveReplyRate}%`} /><Metric label="Qualified / Handoffs" value={`${person.sdr.qualified} · ${person.sdr.qualifiedRate}%`} /><Metric label="Встречи" value={person.sdr.meetings} /><Metric label="Follow-up вовремя" value={`${person.sdr.followUpsOnTime}/${person.sdr.followUpsDue} · ${person.sdr.followUpRate}%`} hint="цель 100%" good={person.sdr.followUpsDue ? person.sdr.followUpRate === 100 : undefined} /><Metric label="Qualification Accuracy" value={`${person.sdr.qualificationAccuracy}%`} hint="цель ≥ 80%" good={person.sdr.audited ? person.sdr.qualificationAccuracy >= 80 : undefined} /></div></div>}
+      {person.salesRoles.includes('CLOSER') && <div className="crm-kpi-block"><h3>Closer</h3><div className="crm-metric-grid"><Metric label="Получено Qualified" value={person.closer.received} /><Metric label="Оплаченные сделки" value={person.closer.won} /><Metric label="Close Rate" value={`${person.closer.closeRate}%`} /><Metric label="Payment Conversion" value={`${person.closer.paymentConversion}%`} hint={`${person.closer.paid}/${person.closer.paymentPending} дошли до оплаты`} /><Metric label="Средний Sales Cycle" value={`${person.closer.salesCycleDays} дн.`} />{person.closer.money.map((money) => <Metric key={money.currency} label={`Revenue / Average Deal · ${money.currency}`} value={`${fmt(money.revenue)} / ${fmt(money.averageDeal)}`} />)}</div></div>}
+    </section>)}
+
+    <section className="crm-section"><div className="crm-section-heading"><h2>Деньги и комиссии</h2><span>Комиссии начисляются только с Cash Received</span></div><div className="crm-table-card"><div className="crm-table-scroll"><table className="crm-table crm-analytics-table"><thead><tr><th>Валюта</th><th>Стоимость договоров</th><th>Получено</th><th>Комиссионный пул</th><th>Researcher 3%</th><th>Verifier 2%</th><th>SDR 5%</th><th>Closer 10%</th></tr></thead><tbody>{report.revenue.map((row) => <tr key={String(row.currency)}><td>{row.currency}</td><td>{fmt(Number(row.contractValue))}</td><td><strong>{fmt(Number(row.cash))}</strong></td><td>{fmt(Number(row.commissionPool))}</td><td>{fmt(Number(row.researcherCommission))}</td><td>{fmt(Number(row.verifierCommission))}</td><td>{fmt(Number(row.sdrCommission))}</td><td>{fmt(Number(row.closerCommission))}</td></tr>)}</tbody></table></div>{!report.revenue.length && <div className="crm-empty">За выбранный период оплаченных сделок нет.</div>}</div></section>
+
+    <section className="crm-section"><div className="crm-section-heading"><h2>Эффективность источников</h2><span>От лида до денег</span></div><div className="crm-table-card"><div className="crm-table-scroll"><table className="crm-table crm-analytics-table"><thead><tr><th>Источник</th><th>Валюта</th><th>Лиды</th><th>Валидные</th><th>Контакты</th><th>Qualified</th><th>Продажи</th><th>Выручка</th><th>Выручка / лид</th></tr></thead><tbody>{report.sources.map((source) => <tr key={`${source.source}-${source.currency}`}><td><strong>{source.source}</strong></td><td>{source.currency}</td><td>{source.leads}</td><td>{source.valid} · {source.leads ? fmt(source.valid / source.leads * 100) : 0}%</td><td>{source.contacted}</td><td>{source.qualified}</td><td>{source.won}</td><td>{fmt(source.revenue)}</td><td>{fmt(source.revenuePerLead)}</td></tr>)}</tbody></table></div>{!report.sources.length && <div className="crm-empty">Источники появятся после добавления лидов.</div>}</div></section>
+  </div></CrmShell>;
+}
