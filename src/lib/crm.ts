@@ -817,6 +817,18 @@ export function updateUserSalesRoles(userId: string, roles: SalesRole[]) {
   transaction();
 }
 
+export function updateUserName(userId: string, name: string) {
+  db.prepare('UPDATE "user" SET name = ?, updatedAt = ? WHERE id = ?').run(name.trim(), new Date().toISOString(), userId);
+}
+
+export function releaseUserLeads(userId: string) {
+  const now = nowIso();
+  db.transaction(() => {
+    db.prepare(`UPDATE clients SET ownership_expires_at = ?, updated_at = ?, version = version + 1 WHERE owner_id = ? AND archived_at IS NULL AND pipeline_stage NOT IN ('WON','LOST','VERIFIER_REJECTED','SDR_REJECTED','NOT_QUALIFIED')`).run(now, now, userId);
+    db.prepare('UPDATE "user" SET banned = 1, updatedAt = ? WHERE id = ?').run(now, userId);
+  })();
+}
+
 export function claimExpiredClient(user: CurrentUser, clientId: string) {
   const client = getClient(user, clientId);
   if (!client) throw new Error('Клиент не найден.');
@@ -1024,9 +1036,9 @@ function percentage(numerator: number, denominator: number) {
 
 type CountRow = { total: number; positive?: number; negative?: number; amount?: number; average?: number };
 
-export function getKpiReport(user: CurrentUser, period: AnalyticsPeriod = 'month') {
+export function getKpiReport(user: CurrentUser, period: AnalyticsPeriod = 'month', selectedUserId?: string) {
   const { start, end } = analyticsBounds(period);
-  const members = (user.role === 'admin' ? listActiveUsers() : listActiveUsers().filter((member) => member.id === user.id));
+  const members = (user.role === 'admin' ? listActiveUsers() : listActiveUsers().filter((member) => member.id === user.id)).filter((member) => !selectedUserId || user.role === 'admin' && member.id === selectedUserId);
 
   const people = members.map((member) => {
     const submitted = (db.prepare(`SELECT COUNT(*) AS total FROM clients WHERE researcher_id = ? AND created_at >= ? AND created_at <= ?`).get(member.id, start, end) as CountRow).total;

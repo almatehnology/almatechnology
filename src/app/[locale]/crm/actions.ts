@@ -18,6 +18,8 @@ import {
   transferClient,
   updateClient,
   updateUserSalesRoles,
+  updateUserName,
+  releaseUserLeads,
   type ClientInput,
   type InteractionChannel,
   type SalesRole,
@@ -304,6 +306,14 @@ export async function updateUserSalesRolesAction(_: ActionState, formData: FormD
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Не удалось изменить рабочие роли.' };
   }
+}
+
+export async function updateUserNameAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  try { const locale = localeOf(formData); await requireAdmin(locale); updateUserName(value(formData, 'userId'), value(formData, 'name')); revalidatePath(pathFor(formData, '/team')); return { success: 'Имя обновлено.' }; } catch (error) { return { error: error instanceof Error ? error.message : 'Не удалось обновить имя.' }; }
+}
+
+export async function removeUserAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  try { const locale = localeOf(formData); const adminUser = await requireAdmin(locale); const userId = value(formData, 'userId'); if (userId === adminUser.id) throw new Error('Нельзя удалить собственную учётную запись.'); releaseUserLeads(userId); revalidatePath(pathFor(formData, '/team')); return { success: 'Пользователь отключён, активные лиды освобождены.' }; } catch (error) { return { error: error instanceof Error ? error.message : 'Не удалось удалить пользователя.' }; }
 }
 
 

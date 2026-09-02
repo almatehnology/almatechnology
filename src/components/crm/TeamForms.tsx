@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
-import { createUserAction, resetPasswordAction, toggleUserAction, updateUserSalesRolesAction, type ActionState } from '@/app/[locale]/crm/actions';
+import { createUserAction, removeUserAction, resetPasswordAction, toggleUserAction, updateUserNameAction, updateUserSalesRolesAction, type ActionState } from '@/app/[locale]/crm/actions';
 import { SALES_ROLES, type SalesRole } from '@/lib/crm-types';
 import { salesRoleLabels } from '@/lib/crm-format';
 import { ActionMessage, SubmitButton } from './FormControls';
@@ -20,4 +20,10 @@ export function UserControls({ locale, id, banned, salesRoles }: { locale: strin
   const [passwordState, passwordAction] = useActionState<ActionState, FormData>(resetPasswordAction, {});
   const [rolesState, rolesAction] = useActionState<ActionState, FormData>(updateUserSalesRolesAction, {});
   return <div className="crm-user-controls"><details><summary>Рабочие роли</summary><form action={rolesAction} className="crm-form compact crm-user-role-form"><input type="hidden" name="locale" value={locale} /><input type="hidden" name="userId" value={id} /><RoleCheckboxes selected={salesRoles} /><SubmitButton pendingText="…">Сохранить роли</SubmitButton><ActionMessage state={rolesState} /></form></details><form action={toggleAction}><input type="hidden" name="locale" value={locale} /><input type="hidden" name="userId" value={id} /><input type="hidden" name="isBanned" value={String(banned)} /><SubmitButton className="secondary" pendingText="…">{banned ? 'Включить' : 'Отключить'}</SubmitButton><ActionMessage state={toggleState} /></form><details><summary>Сбросить пароль</summary><form action={passwordAction} className="crm-inline-form"><input type="hidden" name="locale" value={locale} /><input type="hidden" name="userId" value={id} /><input name="newPassword" type="password" minLength={8} required placeholder="Новый пароль" /><SubmitButton pendingText="…">Сохранить</SubmitButton><ActionMessage state={passwordState} /></form></details></div>;
+}
+
+export function UserAdminActions({ locale, id, name }: { locale: string; id: string; name: string }) {
+  const [profileState, profileAction] = useActionState<ActionState, FormData>(updateUserNameAction, {});
+  const [removeState, removeAction] = useActionState<ActionState, FormData>(removeUserAction, {});
+  return <div className="crm-user-controls"><details><summary>Изменить имя</summary><form action={profileAction} className="crm-inline-form"><input type="hidden" name="locale" value={locale} /><input type="hidden" name="userId" value={id} /><input name="name" defaultValue={name} required /><SubmitButton pendingText="…">Сохранить</SubmitButton><ActionMessage state={profileState} /></form></details><form action={removeAction} onSubmit={(event) => { if (!window.confirm('Отключить пользователя и освободить активные лиды?')) event.preventDefault(); }}><input type="hidden" name="locale" value={locale} /><input type="hidden" name="userId" value={id} /><SubmitButton className="secondary" pendingText="…">Удалить и освободить лиды</SubmitButton><ActionMessage state={removeState} /></form></div>;
 }

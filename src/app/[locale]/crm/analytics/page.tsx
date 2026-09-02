@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { CrmShell } from '@/components/crm/CrmShell';
-import { getKpiReport, type AnalyticsPeriod } from '@/lib/crm';
+import { getKpiReport, listActiveUsers, type AnalyticsPeriod } from '@/lib/crm';
 import { salesRoleLabels } from '@/lib/crm-format';
 import { requireUser } from '@/lib/session';
 
@@ -14,14 +14,14 @@ function Metric({ label, value, hint, good }: { label: string; value: string | n
 export default async function AnalyticsPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ period?: string }> }) {
   const { locale } = await params;
   const user = await requireUser(locale);
-  const requested = (await searchParams).period;
+  const query = await searchParams; const requested = query.period; const selectedUserId = user.role === 'admin' ? query.userId : undefined;
   const period: AnalyticsPeriod = ['today', 'week', 'month', 'all'].includes(requested || '') ? requested as AnalyticsPeriod : 'month';
-  const report = getKpiReport(user, period);
+  const report = getKpiReport(user, period, selectedUserId);
   const base = `/${locale}/crm/analytics`;
 
   return <CrmShell user={user} locale={locale}><div className="crm-page">
     <header className="crm-page-header"><div><p className="crm-eyebrow">АНАЛИТИКА</p><h1>KPI и экономика продаж</h1><p>Показатели считаются из этапов, проверок, задач и фактически полученных оплат. Ручного «рисования» итогов нет.</p></div></header>
-    <div className="crm-tabs">{Object.entries(periodLabels).map(([key, label]) => <Link key={key} href={`${base}?period=${key}`} className={period === key ? 'active' : ''}>{label}</Link>)}</div>
+    <div className="crm-tabs">{Object.entries(periodLabels).map(([key, label]) => <Link key={key} href={`${base}?period=${key}${selectedUserId ? `&userId=${selectedUserId}` : ''}`} className={period === key ? 'active' : ''}>{label}</Link>)}</div>{user.role === 'admin' && <form className="crm-filter-form" method="get"><input type="hidden" name="period" value={period} /><label>Сотрудник / User ID<select name="userId" defaultValue={selectedUserId || ''}><option value="">Все сотрудники</option>{listActiveUsers().map((member) => <option key={member.id} value={member.id}>{member.name} · {member.id}</option>)}</select></label><button type="submit">Фильтровать</button></form>}
 
     {report.people.map((person) => <section key={person.id} className="crm-section crm-person-kpi"><div className="crm-section-heading"><h2>{person.name}</h2><span>{person.salesRoles.map((role) => salesRoleLabels[role]).join(' · ') || 'Рабочие роли не назначены'}</span></div>
       {person.salesRoles.includes('RESEARCHER') && <div className="crm-kpi-block"><h3>Lead Researcher</h3><div className="crm-metric-grid"><Metric label="Новые лиды" value={person.researcher.submitted} hint="дневной ориентир: 20" good={period === 'today' ? person.researcher.submitted >= 20 : undefined} /><Metric label="Проверено Verifier" value={person.researcher.reviewed} /><Metric label="Валидные" value={person.researcher.valid} /><Metric label="Quality KPI" value={`${person.researcher.validityRate}%`} hint="цель ≥ 75%" good={person.researcher.reviewed ? person.researcher.validityRate >= 75 : undefined} /></div></div>}
