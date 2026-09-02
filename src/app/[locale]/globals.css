@@ -83,3 +83,21 @@ body {
 .crm-user-role-form { min-width: 0; width: 100%; }
 .crm-user-role-form .crm-button { width: 100%; }
 .crm-users-list strong, .crm-users-list small, .crm-users-list span { overflow-wrap: anywhere; }
+/* User administration controls use a contained stack; no form may widen the users card. */
+.crm-users-list article > div:last-child { width: 100%; overflow: hidden; box-sizing: border-box; }
+.crm-users-list article > div:last-child > .crm-user-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; box-sizing: border-box; }
+.crm-user-controls > details, .crm-user-controls > form { min-width: 0; max-width: 100%; box-sizing: border-box; }
+.crm-user-controls details[open] { width: 100%; }
+.crm-user-controls details[open] > form { width: 100%; max-width: 100%; box-sizing: border-box; }
+.crm-user-controls .crm-inline-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+.crm-user-controls .crm-inline-form input { width: 100%; min-width: 0; box-sizing: border-box; }
+.crm-user-controls .crm-user-role-form { grid-template-columns: 1fr; }
+.crm-user-controls .crm-role-fieldset { min-width: 0; }
+.crm-user-controls .crm-role-checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.crm-user-controls .crm-button { max-width: 100%; white-space: normal; }
+.crm-user-controls > form:not(.crm-inline-form) { display: flex; align-items: flex-end; }
+
+@media (max-width: 760px) {
+  .crm-users-list article > div:last-child > .crm-user-controls { grid-template-columns: 1fr; }
+  .crm-user-controls .crm-inline-form { grid-template-columns: 1fr; }
+}
