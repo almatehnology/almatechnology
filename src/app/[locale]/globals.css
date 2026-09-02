@@ -100,6 +100,12 @@ body {
 .crm-toast.error { border-color: #7b3c45; background: #3b171d; color: #ffc2c8; }
 .crm-toast button { flex: 0 0 auto; border: 0; background: transparent; color: currentColor; font-size: 21px; line-height: 1; cursor: pointer; opacity: .8; }
 @keyframes crm-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.crm-users-list article { align-items: start; }
+.crm-users-list article > div:first-child { align-self: start; align-content: start; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.crm-users-list article > div:first-child > * { flex: 0 0 auto; }
+.crm-role-badges { align-self: start; align-items: flex-start; align-content: flex-start; height: max-content; }
+.crm-role-badges span { height: max-content; }
+.crm-users-list article > div:last-child { align-self: start; }
 /* User administration controls use a contained stack; no form may widen the users card. */
 .crm-users-list article > div:last-child { width: 100%; overflow: hidden; box-sizing: border-box; }
 .crm-users-list article > div:last-child > .crm-user-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; box-sizing: border-box; }
