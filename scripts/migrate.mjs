@@ -260,5 +260,10 @@ migrate('006_normalize_ownership_time', `
   WHERE ownership_expires_at IS NOT NULL;
 `);
 
+migrate('007_commission_split_50', `
+  UPDATE clients SET researcher_commission_rate = 7.5, verifier_commission_rate = 7.5,
+    sdr_commission_rate = 17.5, closer_commission_rate = 17.5;
+`);
+
 console.log(`Database is ready: ${databasePath}`);
 db.close();

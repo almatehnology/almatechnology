@@ -306,6 +306,7 @@ export async function updateUserSalesRolesAction(_: ActionState, formData: FormD
   }
 }
 
+
 export async function toggleUserAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const locale = localeOf(formData);

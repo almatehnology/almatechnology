@@ -539,6 +539,7 @@ export function createClient(user: CurrentUser, input: ClientInput) {
     INSERT INTO clients (
       id, company_name, contact_name, position, email, phone, messenger, website, source, country, city, industry,
       observed_problem, suggested_service, estimated_value, currency, status, pipeline_stage,
+      researcher_commission_rate, verifier_commission_rate, sdr_commission_rate, closer_commission_rate,
       owner_id, created_by_id, researcher_id, verifier_owner_id, ownership_expires_at, general_notes, normalized_email, normalized_phone, created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
@@ -560,6 +561,7 @@ export function createClient(user: CurrentUser, input: ClientInput) {
     text(input.currency) || 'USD',
     'NEW',
     'RAW',
+    7.5, 7.5, 17.5, 17.5,
     ownerId,
     user.id,
     user.id,
