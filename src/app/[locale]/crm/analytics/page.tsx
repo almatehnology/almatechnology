@@ -11,7 +11,7 @@ function Metric({ label, value, hint, good }: { label: string; value: string | n
   return <div className={`crm-metric ${good === true ? 'good' : good === false ? 'bad' : ''}`}><span>{label}</span><strong>{value}</strong>{hint && <small>{hint}</small>}</div>;
 }
 
-export default async function AnalyticsPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ period?: string }> }) {
+export default async function AnalyticsPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ period?: string; userId?: string }> }) {
   const { locale } = await params;
   const user = await requireUser(locale);
   const query = await searchParams; const requested = query.period; const selectedUserId = user.role === 'admin' ? query.userId : undefined;
