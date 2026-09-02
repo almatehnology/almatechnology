@@ -83,6 +83,23 @@ body {
 .crm-user-role-form { min-width: 0; width: 100%; }
 .crm-user-role-form .crm-button { width: 100%; }
 .crm-users-list strong, .crm-users-list small, .crm-users-list span { overflow-wrap: anywhere; }
+.crm-user-admin { width: min(100%, 620px); min-width: 0; box-sizing: border-box; }
+.crm-user-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 100%; padding: 4px; margin-bottom: 12px; background: #0d0e11; border: 1px solid #30333b; border-radius: 10px; box-sizing: border-box; }
+.crm-user-tabs button { min-width: 0; border: 0; border-radius: 7px; padding: 10px 8px; background: transparent; color: #9da4af; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.crm-user-tabs button:hover { color: #f5f5f5; background: #1a1c21; }
+.crm-user-tabs button.active { color: #17180d; background: var(--color-accent); }
+.crm-user-tab-content { min-height: 150px; padding: 15px; border: 1px solid #30333b; border-radius: 10px; background: #15161a; box-sizing: border-box; }
+.crm-user-tab-content .crm-role-fieldset { margin: 0; }
+.crm-user-footer { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.crm-user-footer form { min-width: 0; display: grid; gap: 5px; }
+.crm-user-footer .crm-button { width: 100%; min-height: 40px; white-space: normal; }
+.crm-user-admin .crm-inline-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 9px; }
+.crm-user-admin .crm-inline-form label { min-width: 0; }
+.crm-user-admin .crm-inline-form input { width: 100%; box-sizing: border-box; }
+.crm-toast { position: fixed; z-index: 100; right: 24px; bottom: 24px; width: min(380px, calc(100vw - 48px)); display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 14px 16px; border: 1px solid #355d45; border-radius: 11px; background: #123522; color: #b9efc9; box-shadow: 0 16px 40px #0008; font-size: 13px; line-height: 1.4; animation: crm-toast-in .2s ease-out; }
+.crm-toast.error { border-color: #7b3c45; background: #3b171d; color: #ffc2c8; }
+.crm-toast button { flex: 0 0 auto; border: 0; background: transparent; color: currentColor; font-size: 21px; line-height: 1; cursor: pointer; opacity: .8; }
+@keyframes crm-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 /* User administration controls use a contained stack; no form may widen the users card. */
 .crm-users-list article > div:last-child { width: 100%; overflow: hidden; box-sizing: border-box; }
 .crm-users-list article > div:last-child > .crm-user-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; box-sizing: border-box; }

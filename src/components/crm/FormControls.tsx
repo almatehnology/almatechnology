@@ -11,8 +11,10 @@ export function SubmitButton({ children, pendingText = 'Сохраняем…', 
 }
 
 export function ActionMessage({ state }: { state: ActionState }) {
-  if (!state.error && !state.success) return null;
-  return <p className={state.error ? 'crm-form-message error' : 'crm-form-message success'}>{state.error || state.success}</p>;
+  const [visible, setVisible] = useState(false);
+  useEffect(() => { if (!state.error && !state.success) return; const showTimer = window.setTimeout(() => setVisible(true), 0); const hideTimer = window.setTimeout(() => setVisible(false), 4200); return () => { window.clearTimeout(showTimer); window.clearTimeout(hideTimer); }; }, [state.error, state.success]);
+  if (!visible || (!state.error && !state.success)) return null;
+  return <div className={`crm-toast ${state.error ? 'error' : 'success'}`} role="status"><span>{state.error || state.success}</span><button type="button" aria-label="Закрыть уведомление" onClick={() => setVisible(false)}>×</button></div>;
 }
 
 export function useNewTaskToggle() {
