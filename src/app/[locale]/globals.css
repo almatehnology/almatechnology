@@ -75,3 +75,11 @@ body {
 @media (max-width: 1200px) { .crm-funnel { grid-template-columns: repeat(3, minmax(0, 1fr)); }.crm-funnel > div:nth-child(3n+1) { border-left: 0; }.crm-funnel > div:nth-child(n+4) { border-top: 1px solid #2c2f36; }.crm-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 1024px) { .crm-action-grid { grid-template-columns: 1fr; }.crm-team-grid { grid-template-columns: 1fr; }.crm-inline-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .crm-app { display: block; }.crm-sidebar { position: static; height: auto; padding: 15px; border-right: 0; border-bottom: 1px solid #292c33; }.crm-brand { padding: 0 5px 14px; }.crm-nav { display: flex; overflow-x: auto; }.crm-nav a { flex: 0 0 auto; padding: 9px; }.crm-user { display: none; }.crm-page { padding: 27px 16px 48px; }.crm-page-header, .crm-client-header { display: grid; }.crm-page-header .crm-button { justify-self: start; }.crm-stat-grid, .crm-detail-grid, .crm-inline-list, .crm-funnel, .crm-metric-grid, .crm-workflow-actions { grid-template-columns: 1fr; }.crm-funnel > div { border-left: 0; border-top: 1px solid #2c2f36; }.crm-funnel > div:first-child { border-top: 0; }.crm-form-grid { grid-template-columns: 1fr; }.crm-span-2 { grid-column: auto; }.crm-filter-bar > * { flex: 1 1 145px; }.crm-contact-links { justify-content: flex-start; }.crm-client-header { gap: 15px; }.crm-timeline article > div { display: grid; gap: 4px; }.crm-users-list article { display: grid; }.crm-user-controls { flex-wrap: wrap; }.crm-user-role-form { min-width: 0; } }
+/* Keep team controls inside the card on desktop and mobile. */
+.crm-users-list article { min-width: 0; }
+.crm-users-list article > div:last-child { min-width: 0; max-width: 100%; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: flex-start; gap: 8px; }
+.crm-user-controls { min-width: 0; max-width: 100%; flex-wrap: wrap; justify-content: flex-end; }
+.crm-user-controls details[open] { width: min(100%, 430px); }
+.crm-user-role-form { min-width: 0; width: 100%; }
+.crm-user-role-form .crm-button { width: 100%; }
+.crm-users-list strong, .crm-users-list small, .crm-users-list span { overflow-wrap: anywhere; }
