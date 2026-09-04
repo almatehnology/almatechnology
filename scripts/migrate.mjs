@@ -265,5 +265,27 @@ migrate('007_commission_split_50', `
     sdr_commission_rate = 17.5, closer_commission_rate = 17.5;
 `);
 
+migrate('008_client_source_structure', `
+  ALTER TABLE clients ADD COLUMN source_category TEXT;
+  ALTER TABLE clients ADD COLUMN source_platform TEXT;
+  ALTER TABLE clients ADD COLUMN source_detail TEXT;
+  ALTER TABLE clients ADD COLUMN source_url TEXT;
+
+  CREATE INDEX IF NOT EXISTS clients_source_category_idx ON clients(source_category);
+  CREATE INDEX IF NOT EXISTS clients_source_platform_idx ON clients(source_platform);
+
+  UPDATE clients SET source_platform = source WHERE source_platform IS NULL AND source IS NOT NULL;
+`);
+
+migrate('009_ensure_commission_and_pipeline', `
+  UPDATE clients SET
+    researcher_commission_rate = 7.5,
+    verifier_commission_rate = 7.5,
+    sdr_commission_rate = 17.5,
+    closer_commission_rate = 17.5
+  WHERE researcher_commission_rate != 7.5 OR verifier_commission_rate != 7.5 OR sdr_commission_rate != 17.5 OR closer_commission_rate != 17.5;
+`);
+
 console.log(`Database is ready: ${databasePath}`);
 db.close();
+

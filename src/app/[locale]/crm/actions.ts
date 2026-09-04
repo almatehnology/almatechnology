@@ -25,6 +25,7 @@ import {
   type SalesRole,
   type TaskType,
   type WorkflowInput,
+  type SourceCategory,
 } from '@/lib/crm';
 import { SALES_ROLES } from '@/lib/crm-types';
 import { requireAdmin, requireUser } from '@/lib/session';
@@ -55,6 +56,10 @@ function clientInput(formData: FormData): ClientInput {
     messenger: optionalValue(formData, 'messenger'),
     website: optionalValue(formData, 'website'),
     source: optionalValue(formData, 'source'),
+    sourceCategory: (optionalValue(formData, 'sourceCategory') as SourceCategory) || undefined,
+    sourcePlatform: optionalValue(formData, 'sourcePlatform'),
+    sourceDetail: optionalValue(formData, 'sourceDetail'),
+    sourceUrl: optionalValue(formData, 'sourceUrl'),
     country: optionalValue(formData, 'country'),
     city: optionalValue(formData, 'city'),
     industry: optionalValue(formData, 'industry'),

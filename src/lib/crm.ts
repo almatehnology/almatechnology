@@ -3,10 +3,11 @@ import 'server-only';
 import crypto from 'node:crypto';
 import { appTimeZone, db, nowIso } from '@/lib/db';
 import { hasSalesRole, type CurrentUser } from '@/lib/session';
-import { CLIENT_STATUSES, INTERACTION_CHANNELS, SALES_ROLES, TASK_TYPES, type ClientStatus, type InteractionChannel, type InteractionDirection, type SalesRole, type TaskType } from '@/lib/crm-types';
+import { CLIENT_STATUSES, INTERACTION_CHANNELS, SALES_ROLES, TASK_TYPES, SOURCE_CATEGORIES, type ClientStatus, type InteractionChannel, type InteractionDirection, type SalesRole, type TaskType, type SourceCategory } from '@/lib/crm-types';
+import { sourceCategoryLabels } from '@/lib/crm-format';
 
-export { CLIENT_STATUSES, INTERACTION_CHANNELS, SALES_ROLES, TASK_TYPES } from '@/lib/crm-types';
-export type { ClientStatus, InteractionChannel, InteractionDirection, SalesRole, TaskType } from '@/lib/crm-types';
+export { CLIENT_STATUSES, INTERACTION_CHANNELS, SALES_ROLES, TASK_TYPES, SOURCE_CATEGORIES, SOURCE_CATEGORY_PLATFORMS } from '@/lib/crm-types';
+export type { ClientStatus, InteractionChannel, InteractionDirection, SalesRole, TaskType, SourceCategory } from '@/lib/crm-types';
 
 export type ClientInput = {
   companyName: string;
@@ -17,6 +18,10 @@ export type ClientInput = {
   messenger?: string;
   website?: string;
   source?: string;
+  sourceCategory?: SourceCategory;
+  sourcePlatform?: string;
+  sourceDetail?: string;
+  sourceUrl?: string;
   country?: string;
   city?: string;
   industry?: string;
@@ -32,6 +37,7 @@ export type ClientInput = {
 export type WorkflowInput = {
   clientId: string;
   action:
+    | 'RESEARCHER_SUBMIT'
     | 'VERIFIER_APPROVE' | 'VERIFIER_REJECT'
     | 'SDR_ACCEPT' | 'SDR_REJECT' | 'SDR_REPLIED' | 'SDR_INTERESTED' | 'SDR_QUALIFY'
     | 'CLOSER_ACCEPT' | 'CLOSER_REJECT' | 'CLOSER_OFFER' | 'CLOSER_NEGOTIATION'
@@ -77,6 +83,8 @@ export type ClientFilters = {
   ownerId?: string;
   search?: string;
   attention?: 'overdue' | 'no_next_task';
+  sourceCategory?: string;
+  sourcePlatform?: string;
 };
 
 export type ClientRow = {
@@ -89,6 +97,10 @@ export type ClientRow = {
   messenger: string | null;
   website: string | null;
   source: string | null;
+  sourceCategory: SourceCategory | null;
+  sourcePlatform: string | null;
+  sourceDetail: string | null;
+  sourceUrl: string | null;
   country: string | null;
   city: string | null;
   industry: string | null;
@@ -224,6 +236,10 @@ const clientProjection = `
   c.messenger AS messenger,
   c.website AS website,
   c.source AS source,
+  c.source_category AS sourceCategory,
+  c.source_platform AS sourcePlatform,
+  c.source_detail AS sourceDetail,
+  c.source_url AS sourceUrl,
   c.country AS country,
   c.city AS city,
   c.industry AS industry,
@@ -315,8 +331,29 @@ export function normalizePhone(value?: string) {
   return normalized || null;
 }
 
+export function normalizeUrl(value?: string | null) {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 function text(value?: string | null) {
   return value?.trim() || null;
+}
+
+function formatSourceText(input: ClientInput) {
+  const category = input.sourceCategory && SOURCE_CATEGORIES.includes(input.sourceCategory) ? input.sourceCategory : null;
+  const platform = input.sourcePlatform?.trim() || null;
+  const detail = input.sourceDetail?.trim() || null;
+  if (input.source?.trim()) return input.source.trim();
+  if (!category && !platform) return null;
+  const label = category ? sourceCategoryLabels[category] : null;
+  const parts: string[] = [];
+  if (label) parts.push(`[${label}]`);
+  if (platform) parts.push(platform);
+  if (detail) parts.push(`(${detail})`);
+  return parts.join(' ');
 }
 
 function isEditor(client: Pick<ClientRow, 'ownerId'>, user: CurrentUser) {
@@ -398,14 +435,25 @@ export function listClients(user: CurrentUser, filters: ClientFilters = {}): Cli
     params.push(filters.ownerId);
   }
 
+  if (filters.sourceCategory && SOURCE_CATEGORIES.includes(filters.sourceCategory as SourceCategory)) {
+    conditions.push('c.source_category = ?');
+    params.push(filters.sourceCategory);
+  }
+
+  if (filters.sourcePlatform?.trim()) {
+    conditions.push('lower(c.source_platform) = lower(?)');
+    params.push(filters.sourcePlatform.trim());
+  }
+
   if (filters.search?.trim()) {
     const term = `%${filters.search.trim().toLowerCase()}%`;
     conditions.push(`(
       lower(c.company_name) LIKE ? OR lower(c.contact_name) LIKE ? OR
       lower(COALESCE(c.email, '')) LIKE ? OR lower(COALESCE(c.phone, '')) LIKE ? OR
-      lower(COALESCE(c.website, '')) LIKE ?
+      lower(COALESCE(c.website, '')) LIKE ? OR lower(COALESCE(c.source_platform, '')) LIKE ? OR
+      lower(COALESCE(c.source_detail, '')) LIKE ?
     )`);
-    params.push(term, term, term, term, term);
+    params.push(term, term, term, term, term, term, term);
   }
 
   if (filters.attention === 'overdue') {
@@ -530,18 +578,34 @@ export function createClient(user: CurrentUser, input: ClientInput) {
   if (!hasSalesRole(user, 'RESEARCHER')) throw new Error('Для добавления лидов нужна роль Lead Researcher.');
   const verifierOwnerId = input.verifierOwnerId || null;
   if (verifierOwnerId) ensureUserHasRole(verifierOwnerId, 'VERIFIER');
-  const ownerId = verifierOwnerId || (user.role === 'admin' && input.ownerId ? input.ownerId : user.id);
+  const ownerId = user.id;
   ensureActiveUser(ownerId);
   const id = crypto.randomUUID();
   const now = nowIso();
 
+  const category = input.sourceCategory && SOURCE_CATEGORIES.includes(input.sourceCategory) ? input.sourceCategory : null;
+  const platform = text(input.sourcePlatform);
+  const detail = text(input.sourceDetail);
+  const url = normalizeUrl(input.sourceUrl);
+
   db.prepare(`
     INSERT INTO clients (
-      id, company_name, contact_name, position, email, phone, messenger, website, source, country, city, industry,
+      id, company_name, contact_name, position, email, phone, messenger, website,
+      source, source_category, source_platform, source_detail, source_url,
+      country, city, industry,
       observed_problem, suggested_service, estimated_value, currency, status, pipeline_stage,
       researcher_commission_rate, verifier_commission_rate, sdr_commission_rate, closer_commission_rate,
-      owner_id, created_by_id, researcher_id, verifier_owner_id, ownership_expires_at, general_notes, normalized_email, normalized_phone, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      owner_id, created_by_id, researcher_id, verifier_owner_id, ownership_expires_at, general_notes,
+      normalized_email, normalized_phone, created_at, updated_at
+    ) VALUES (
+      ?, ?, ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?,
+      ?, ?, ?,
+      ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?
+    )
   `).run(
     id,
     input.companyName.trim(),
@@ -551,7 +615,11 @@ export function createClient(user: CurrentUser, input: ClientInput) {
     text(input.phone),
     text(input.messenger),
     text(input.website),
-    text(input.source),
+    formatSourceText(input),
+    category,
+    platform,
+    detail,
+    url,
     text(input.country),
     text(input.city),
     text(input.industry),
@@ -560,7 +628,7 @@ export function createClient(user: CurrentUser, input: ClientInput) {
     Number.isFinite(input.estimatedValue) ? input.estimatedValue : null,
     text(input.currency) || 'USD',
     'NEW',
-    'RAW',
+    'RESEARCH',
     7.5, 7.5, 17.5, 17.5,
     ownerId,
     user.id,
@@ -572,7 +640,7 @@ export function createClient(user: CurrentUser, input: ClientInput) {
     normalizePhone(input.phone),
     now, now,
   );
-  db.prepare(`INSERT INTO pipeline_events (id, client_id, from_stage, to_stage, changed_by_id, created_at) VALUES (?, ?, NULL, 'RAW', ?, ?)`)
+  db.prepare(`INSERT INTO pipeline_events (id, client_id, from_stage, to_stage, changed_by_id, created_at) VALUES (?, ?, NULL, 'RESEARCH', ?, ?)`)
     .run(crypto.randomUUID(), id, user.id, now);
   return id;
 }
@@ -583,16 +651,24 @@ export function updateClient(user: CurrentUser, clientId: string, input: ClientI
   if (!client) throw new Error('Клиент не найден.');
   if (!isEditor(client, user)) throw new Error('Вы не можете изменять этого клиента.');
 
+  const category = input.sourceCategory && SOURCE_CATEGORIES.includes(input.sourceCategory) ? input.sourceCategory : null;
+  const platform = text(input.sourcePlatform);
+  const detail = text(input.sourceDetail);
+  const url = normalizeUrl(input.sourceUrl);
+
   const result = db.prepare(`
     UPDATE clients SET
       company_name = ?, contact_name = ?, position = ?, email = ?, phone = ?, messenger = ?, website = ?,
-      source = ?, country = ?, city = ?, industry = ?, observed_problem = ?, suggested_service = ?, estimated_value = ?, currency = ?,
+      source = ?, source_category = ?, source_platform = ?, source_detail = ?, source_url = ?,
+      country = ?, city = ?, industry = ?, observed_problem = ?, suggested_service = ?, estimated_value = ?, currency = ?,
       general_notes = ?, normalized_email = ?, normalized_phone = ?,
       updated_at = ?, version = version + 1
     WHERE id = ? AND version = ?
   `).run(
     input.companyName.trim(), input.contactName.trim(), text(input.position), text(input.email), text(input.phone),
-    text(input.messenger), text(input.website), text(input.source), text(input.country), text(input.city), text(input.industry),
+    text(input.messenger), text(input.website),
+    formatSourceText(input), category, platform, detail, url,
+    text(input.country), text(input.city), text(input.industry),
     text(input.observedProblem), text(input.suggestedService), Number.isFinite(input.estimatedValue) ? input.estimatedValue : null,
     text(input.currency) || 'USD', text(input.generalNotes),
     normalizeEmail(input.email), normalizePhone(input.phone), nowIso(), clientId, version,
@@ -601,7 +677,7 @@ export function updateClient(user: CurrentUser, clientId: string, input: ClientI
 }
 
 const legacyStatusByStage: Record<ClientStatus, string> = {
-  RAW: 'NEW', VERIFIED: 'NEW', VERIFIER_REJECTED: 'LOST', SDR_VALIDATED: 'QUALIFYING', SDR_REJECTED: 'LOST',
+  RESEARCH: 'NEW', RAW: 'NEW', VERIFIED: 'NEW', VERIFIER_REJECTED: 'LOST', SDR_VALIDATED: 'QUALIFYING', SDR_REJECTED: 'LOST',
   CONTACTED: 'CONTACTED', REPLIED: 'QUALIFYING', INTERESTED: 'QUALIFYING', QUALIFIED: 'QUALIFYING',
   NOT_QUALIFIED: 'LOST', DISCOVERY: 'QUALIFYING', OFFER: 'PROPOSAL_SENT', NEGOTIATION: 'ON_HOLD',
   PAYMENT_PENDING: 'WAITING_CLIENT', WON: 'WON', LOST: 'LOST',
@@ -671,6 +747,19 @@ export function advanceWorkflow(user: CurrentUser, input: WorkflowInput) {
   const transaction = db.transaction(() => {
     const now = nowIso();
     switch (input.action) {
+      case 'RESEARCHER_SUBMIT': {
+        requireWorkflowRole(user, 'RESEARCHER', client.researcherId);
+        if (client.status !== 'RESEARCH') throw new Error('Карточка уже передана на этап верификации.');
+        const nextOwnerId = input.nextOwnerId || client.verifierOwnerId || null;
+        if (nextOwnerId) {
+          ensureUserHasRole(nextOwnerId, 'VERIFIER');
+        }
+        setPipelineStage(client, user, 'RAW', {
+          verifier_owner_id: nextOwnerId,
+          owner_id: nextOwnerId || client.ownerId,
+        });
+        break;
+      }
       case 'VERIFIER_APPROVE': {
         requireWorkflowRole(user, 'VERIFIER', client.verifierOwnerId);
         if (client.status !== 'RAW') throw new Error('Этот лид уже проверен.');
@@ -834,9 +923,9 @@ export function claimExpiredClient(user: CurrentUser, clientId: string) {
   if (!client) throw new Error('Клиент не найден.');
   if (!client.ownershipExpiresAt || new Date(client.ownershipExpiresAt).getTime() > Date.now()) throw new Error('Срок владения этим лидом ещё не истёк.');
   if (['WON', 'LOST', 'VERIFIER_REJECTED', 'SDR_REJECTED', 'NOT_QUALIFIED'].includes(client.status)) throw new Error('Завершённую карточку нельзя забрать из пула.');
-  const role: SalesRole = client.status === 'RAW' ? 'VERIFIER' : ['VERIFIED', 'SDR_VALIDATED', 'CONTACTED', 'REPLIED', 'INTERESTED'].includes(client.status) ? 'SDR' : 'CLOSER';
+  const role: SalesRole = client.status === 'RESEARCH' ? 'RESEARCHER' : client.status === 'RAW' ? 'VERIFIER' : ['VERIFIED', 'SDR_VALIDATED', 'CONTACTED', 'REPLIED', 'INTERESTED'].includes(client.status) ? 'SDR' : 'CLOSER';
   requireWorkflowRole(user, role);
-  const assignment = role === 'VERIFIER' ? 'verifier_owner_id' : role === 'SDR' ? 'sdr_owner_id' : 'closer_owner_id';
+  const assignment = role === 'RESEARCHER' ? 'researcher_id' : role === 'VERIFIER' ? 'verifier_owner_id' : role === 'SDR' ? 'sdr_owner_id' : 'closer_owner_id';
   const now = nowIso();
   const expires = new Date(new Date(now).getTime() + 90 * 86_400_000).toISOString();
   const transaction = db.transaction(() => {
@@ -1135,7 +1224,10 @@ export function getKpiReport(user: CurrentUser, period: AnalyticsPeriod = 'month
 
   const scopeSql = user.role === 'admin' ? '' : 'AND owner_id = ?';
   const scopeParams = user.role === 'admin' ? [] : [user.id];
-  const sources = db.prepare(`SELECT COALESCE(NULLIF(trim(source), ''), 'Не указан') AS source, currency,
+
+  const sourceCategories = db.prepare(`SELECT
+      COALESCE(source_category, 'OTHER') AS category,
+      currency,
       COUNT(*) AS leads,
       SUM(EXISTS (SELECT 1 FROM lead_reviews r WHERE r.client_id = clients.id AND r.review_type = 'VERIFIER_REVIEW' AND r.result = 'VALID')) AS valid,
       SUM(first_contact_at IS NOT NULL) AS contacted,
@@ -1143,7 +1235,21 @@ export function getKpiReport(user: CurrentUser, period: AnalyticsPeriod = 'month
       SUM(won_at IS NOT NULL AND cash_received > 0) AS won,
       COALESCE(SUM(cash_received), 0) AS revenue
     FROM clients WHERE archived_at IS NULL AND created_at >= ? AND created_at <= ? ${scopeSql}
-    GROUP BY COALESCE(NULLIF(trim(source), ''), 'Не указан'), currency ORDER BY revenue DESC, leads DESC LIMIT 20`).all(start, end, ...scopeParams) as Array<{ source: string; currency: string; leads: number; valid: number; contacted: number; qualified: number; won: number; revenue: number }>;
+    GROUP BY COALESCE(source_category, 'OTHER'), currency ORDER BY revenue DESC, leads DESC`).all(start, end, ...scopeParams) as Array<{ category: string; currency: string; leads: number; valid: number; contacted: number; qualified: number; won: number; revenue: number }>;
+
+  const sourcePlatforms = db.prepare(`SELECT
+      COALESCE(source_category, 'OTHER') AS category,
+      COALESCE(NULLIF(trim(source_platform), ''), NULLIF(trim(source), ''), 'Не указана') AS platform,
+      currency,
+      COUNT(*) AS leads,
+      SUM(EXISTS (SELECT 1 FROM lead_reviews r WHERE r.client_id = clients.id AND r.review_type = 'VERIFIER_REVIEW' AND r.result = 'VALID')) AS valid,
+      SUM(first_contact_at IS NOT NULL) AS contacted,
+      SUM(qualified_at IS NOT NULL) AS qualified,
+      SUM(won_at IS NOT NULL AND cash_received > 0) AS won,
+      COALESCE(SUM(cash_received), 0) AS revenue
+    FROM clients WHERE archived_at IS NULL AND created_at >= ? AND created_at <= ? ${scopeSql}
+    GROUP BY COALESCE(source_category, 'OTHER'), COALESCE(NULLIF(trim(source_platform), ''), NULLIF(trim(source), ''), 'Не указана'), currency ORDER BY revenue DESC, leads DESC LIMIT 30`).all(start, end, ...scopeParams) as Array<{ category: string; platform: string; currency: string; leads: number; valid: number; contacted: number; qualified: number; won: number; revenue: number }>;
+
   const revenue = db.prepare(`SELECT currency, SUM(cash_received) AS cash, SUM(final_price) AS contractValue,
       SUM(cash_received * (researcher_commission_rate + verifier_commission_rate + sdr_commission_rate + closer_commission_rate) / 100.0) AS commissionPool,
       SUM(cash_received * researcher_commission_rate / 100.0) AS researcherCommission,
@@ -1153,7 +1259,36 @@ export function getKpiReport(user: CurrentUser, period: AnalyticsPeriod = 'month
     FROM clients WHERE won_at >= ? AND won_at <= ? AND cash_received > 0 ${scopeSql}
     GROUP BY currency ORDER BY currency`).all(start, end, ...scopeParams) as Array<Record<string, number | string>>;
 
-  return { period, start, end, people, sources: sources.map((source) => ({ ...source, revenuePerLead: source.leads ? Math.round(source.revenue / source.leads * 100) / 100 : 0 })), revenue };
+  return {
+    period,
+    start,
+    end,
+    people,
+    categories: sourceCategories.map((c) => ({
+      ...c,
+      categoryLabel: sourceCategoryLabels[c.category as SourceCategory] || (c.category === 'OTHER' ? 'Без категории / Прочее' : c.category),
+      revenuePerLead: c.leads ? Math.round(c.revenue / c.leads * 100) / 100 : 0,
+    })),
+    platforms: sourcePlatforms.map((p) => ({
+      ...p,
+      categoryLabel: sourceCategoryLabels[p.category as SourceCategory] || (p.category === 'OTHER' ? 'Прочее' : p.category),
+      revenuePerLead: p.leads ? Math.round(p.revenue / p.leads * 100) / 100 : 0,
+    })),
+    sources: sourcePlatforms.map((source) => ({
+      source: source.platform !== 'Не указана' && source.category !== 'OTHER' && sourceCategoryLabels[source.category as SourceCategory]
+        ? `${sourceCategoryLabels[source.category as SourceCategory]}: ${source.platform}`
+        : source.platform,
+      currency: source.currency,
+      leads: source.leads,
+      valid: source.valid,
+      contacted: source.contacted,
+      qualified: source.qualified,
+      won: source.won,
+      revenue: source.revenue,
+      revenuePerLead: source.leads ? Math.round(source.revenue / source.leads * 100) / 100 : 0,
+    })),
+    revenue,
+  };
 }
 
 export function listTasks(user: CurrentUser, includeCompleted = false) {

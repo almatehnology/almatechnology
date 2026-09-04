@@ -28,7 +28,8 @@ if (fs.existsSync(publicSource) && path.resolve(publicSource) !== path.resolve(p
 
 process.env.SQLITE_PATH ??= path.join(appRoot, 'data', 'crm.sqlite')
 process.env.PORT ??= '7800'
-process.env.HOSTNAME ??= '127.0.0.1'
+process.env.HOSTNAME ??= '0.0.0.0'
 process.env.BETTER_AUTH_URL ??= `http://localhost:${process.env.PORT}`
+process.env.BETTER_AUTH_SECRET ??= 'alma-secret-crm-key-32-chars-long-stable-salt'
 
 await import(pathToFileURL(standaloneServer).href)

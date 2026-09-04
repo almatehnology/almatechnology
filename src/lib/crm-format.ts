@@ -1,7 +1,8 @@
 const appTimeZone = process.env.NEXT_PUBLIC_APP_TIMEZONE || 'America/Argentina/Mendoza';
 
 export const statusLabels: Record<string, string> = {
-  RAW: 'Найден Researcher',
+  RESEARCH: 'Сбор данных (Researcher)',
+  RAW: 'Ожидает верификатора',
   VERIFIED: 'Проверен Verifier',
   VERIFIER_REJECTED: 'Отклонён Verifier',
   SDR_VALIDATED: 'Принят SDR',
@@ -40,6 +41,22 @@ export const interactionChannelLabels: Record<string, string> = {
   MESSENGER: 'Мессенджер',
   MEETING: 'Встреча',
   OTHER: 'Другое',
+};
+
+export const sourceCategoryLabels: Record<string, string> = {
+  JOB_BOARD: 'Найм и постоянная работа',
+  PRO_NETWORK: 'Профессиональные сети',
+  FREELANCE: 'Фриланс-биржи',
+  DIRECT_SALES: 'Прямые продажи (холодные)',
+  SOCIAL_MEDIA: 'Соцсети и сообщества',
+};
+
+export const sourceCategoryShortLabels: Record<string, string> = {
+  JOB_BOARD: 'Найм',
+  PRO_NETWORK: 'Профсети',
+  FREELANCE: 'Биржи',
+  DIRECT_SALES: 'Прямой поиск',
+  SOCIAL_MEDIA: 'Соцсети',
 };
 
 export function formatDateTime(value?: string | null) {
