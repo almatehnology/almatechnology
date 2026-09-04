@@ -66,6 +66,8 @@ function clientInput(formData: FormData): ClientInput {
     observedProblem: optionalValue(formData, 'observedProblem'),
     suggestedService: optionalValue(formData, 'suggestedService'),
     estimatedValue: optionalValue(formData, 'estimatedValue') ? Number(optionalValue(formData, 'estimatedValue')) : undefined,
+    finalPrice: formData.has('finalPrice') ? (optionalValue(formData, 'finalPrice') ? Number(optionalValue(formData, 'finalPrice')) : null) : undefined,
+    cashReceived: formData.has('cashReceived') ? (optionalValue(formData, 'cashReceived') ? Number(optionalValue(formData, 'cashReceived')) : null) : undefined,
     currency: optionalValue(formData, 'currency'),
     generalNotes: optionalValue(formData, 'generalNotes'),
     ownerId: optionalValue(formData, 'ownerId'),

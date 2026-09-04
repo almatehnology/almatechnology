@@ -22,6 +22,14 @@ export const SALES_ROLES = ['RESEARCHER', 'VERIFIER', 'SDR', 'CLOSER'] as const;
 
 export const TASK_TYPES = ['CALL', 'EMAIL', 'MESSAGE', 'MEETING', 'OTHER'] as const;
 export const INTERACTION_CHANNELS = ['CALL', 'EMAIL', 'MESSENGER', 'MEETING', 'OTHER'] as const;
+export const CURRENCIES = ['USD', 'RUB', 'EUR', 'ARS'] as const;
+
+export const currencyLabels: Record<(typeof CURRENCIES)[number], string> = {
+  USD: 'USD ($)',
+  RUB: 'RUB (₽)',
+  EUR: 'EUR (€)',
+  ARS: 'ARS ($)',
+};
 
 export const SOURCE_CATEGORIES = [
   'JOB_BOARD',

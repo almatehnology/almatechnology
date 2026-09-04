@@ -514,3 +514,15 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+.crm-section-plain {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.crm-section-plain > .crm-section-heading {
+  margin-bottom: 14px;
+}
+
+

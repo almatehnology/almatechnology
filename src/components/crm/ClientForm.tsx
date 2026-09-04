@@ -1,9 +1,10 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClientAction, updateClientAction, type ActionState } from '@/app/[locale]/crm/actions';
 import type { ClientRow } from '@/lib/crm';
-import { SOURCE_CATEGORIES, SOURCE_CATEGORY_PLATFORMS, type SalesRole, type SourceCategory } from '@/lib/crm-types';
+import { CURRENCIES, currencyLabels, SOURCE_CATEGORIES, SOURCE_CATEGORY_PLATFORMS, type SalesRole, type SourceCategory } from '@/lib/crm-types';
 import { sourceCategoryLabels } from '@/lib/crm-format';
 import { ActionMessage, SubmitButton, useRedirectOnClientCreated } from './FormControls';
 
@@ -31,10 +32,29 @@ function detectInitialCategory(client?: ClientRow): { category: SourceCategory |
   return { category: '', platform: rawSource, isCustom: true };
 }
 
-export function ClientForm({ locale, users, client, isAdmin }: { locale: string; users: TeamUser[]; client?: ClientRow; isAdmin: boolean }) {
+export function ClientForm({
+  locale,
+  users,
+  client,
+  isAdmin,
+  className = 'crm-form crm-card',
+}: {
+  locale: string;
+  users: TeamUser[];
+  client?: ClientRow;
+  isAdmin: boolean;
+  className?: string;
+}) {
+  const router = useRouter();
   const action = client ? updateClientAction : createClientAction;
   const [state, formAction] = useActionState<ActionState, FormData>(action, {});
   useRedirectOnClientCreated(state, locale);
+
+  useEffect(() => {
+    if (state.success && client) {
+      router.refresh();
+    }
+  }, [state.success, client, router]);
 
   const initial = detectInitialCategory(client);
   const [category, setCategory] = useState<SourceCategory | ''>(initial.category);
@@ -45,7 +65,7 @@ export function ClientForm({ locale, users, client, isAdmin }: { locale: string;
   const availablePlatforms = category ? (SOURCE_CATEGORY_PLATFORMS[category] || []) : [];
 
   return (
-    <form action={formAction} className="crm-form crm-card">
+    <form action={formAction} className={className}>
       <input type="hidden" name="locale" value={locale} />
       {client && (
         <>
@@ -152,8 +172,23 @@ export function ClientForm({ locale, users, client, isAdmin }: { locale: string;
       <div className="crm-form-grid">
         <label>Страна<input name="country" defaultValue={client?.country || ''} placeholder="Argentina" /></label>
         <label>Город<input name="city" defaultValue={client?.city || ''} placeholder="Mendoza" /></label>
-        <label>Ориентир суммы<input name="estimatedValue" type="number" min="0" step="1" defaultValue={client?.estimatedValue ?? ''} placeholder="200" /></label>
-        <label>Валюта<select name="currency" defaultValue={client?.currency || 'USD'}><option value="USD">USD</option><option value="ARS">ARS</option><option value="EUR">EUR</option></select></label>
+        <label>Ориентир суммы<input name="estimatedValue" type="number" min="0" step="0.01" defaultValue={client?.estimatedValue ?? ''} placeholder="200" /></label>
+        {client && (
+          <>
+            <label>Стоимость договора<input name="finalPrice" type="number" min="0" step="0.01" defaultValue={client?.finalPrice ?? ''} placeholder="400" /></label>
+            <label>Фактически получено<input name="cashReceived" type="number" min="0" step="0.01" defaultValue={client?.cashReceived ?? ''} placeholder="400" /></label>
+          </>
+        )}
+        <label>
+          Валюта
+          <select name="currency" defaultValue={client?.currency || 'USD'}>
+            {CURRENCIES.map((curr) => (
+              <option key={curr} value={curr}>
+                {currencyLabels[curr] || curr}
+              </option>
+            ))}
+          </select>
+        </label>
         {!client && (
           <label>
             Предпочтительный Verifier

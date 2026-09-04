@@ -288,7 +288,7 @@ export function ClientDetailTabs({
 
         {/* 3. Задачи */}
         {activeTab === 'tasks' && (
-          <section className="crm-card">
+          <section className="crm-section-plain">
             <div className="crm-section-heading">
               <h2>Открытые задачи</h2>
               <span>{openTasks.length}</span>
@@ -316,7 +316,7 @@ export function ClientDetailTabs({
 
         {/* 4. История контактов */}
         {activeTab === 'interactions' && (
-          <section className="crm-card">
+          <section className="crm-section-plain">
             <div className="crm-section-heading">
               <h2>История контактов</h2>
               <span>{interactions.length}</span>
@@ -347,7 +347,7 @@ export function ClientDetailTabs({
         {/* 5. История этапов и передач */}
         {activeTab === 'history' && (
           <div style={{ display: 'grid', gap: '20px' }}>
-            <section className="crm-card">
+            <section className="crm-section-plain">
               <div className="crm-section-heading">
                 <h2>История движения по этапам</h2>
                 <span>{pipelineEvents.length}</span>
@@ -373,7 +373,7 @@ export function ClientDetailTabs({
             </section>
 
             {transfers.length > 0 && (
-              <section className="crm-card">
+              <section className="crm-section-plain">
                 <div className="crm-section-heading">
                   <h2>История передач лида</h2>
                   <span>{transfers.length}</span>
@@ -396,7 +396,7 @@ export function ClientDetailTabs({
 
         {/* 6. Контроль качества */}
         {activeTab === 'reviews' && reviews.length > 0 && (
-          <section className="crm-card">
+          <section className="crm-section-plain">
             <div className="crm-section-heading">
               <h2>Контроль качества</h2>
               <span>{reviews.length}</span>
@@ -420,7 +420,14 @@ export function ClientDetailTabs({
         {activeTab === 'edit' && client.canEdit && (
           <section className="crm-card">
             <h2>Редактирование карточки</h2>
-            <ClientForm locale={locale} users={users} client={client} isAdmin={isAdmin} />
+            <ClientForm
+              key={`${client.id}-${client.version}`}
+              locale={locale}
+              users={users}
+              client={client}
+              isAdmin={isAdmin}
+              className="crm-form"
+            />
             <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #282a32' }}>
               <ArchiveClientButton locale={locale} clientId={client.id} />
             </div>

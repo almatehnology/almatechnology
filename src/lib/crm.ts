@@ -28,6 +28,8 @@ export type ClientInput = {
   observedProblem?: string;
   suggestedService?: string;
   estimatedValue?: number;
+  finalPrice?: number | null;
+  cashReceived?: number | null;
   currency?: string;
   generalNotes?: string;
   ownerId?: string;
@@ -655,12 +657,23 @@ export function updateClient(user: CurrentUser, clientId: string, input: ClientI
   const platform = text(input.sourcePlatform);
   const detail = text(input.sourceDetail);
   const url = normalizeUrl(input.sourceUrl);
+  const nextEstimatedValue = input.estimatedValue !== undefined
+    ? (Number.isFinite(input.estimatedValue) ? input.estimatedValue : null)
+    : client.estimatedValue;
+  const nextFinalPrice = input.finalPrice !== undefined
+    ? (Number.isFinite(input.finalPrice) ? input.finalPrice : null)
+    : client.finalPrice;
+  const nextCashReceived = input.cashReceived !== undefined
+    ? (Number.isFinite(input.cashReceived) ? input.cashReceived : 0)
+    : client.cashReceived;
+  const nextCurrency = text(input.currency) || client.currency || 'USD';
 
   const result = db.prepare(`
     UPDATE clients SET
       company_name = ?, contact_name = ?, position = ?, email = ?, phone = ?, messenger = ?, website = ?,
       source = ?, source_category = ?, source_platform = ?, source_detail = ?, source_url = ?,
-      country = ?, city = ?, industry = ?, observed_problem = ?, suggested_service = ?, estimated_value = ?, currency = ?,
+      country = ?, city = ?, industry = ?, observed_problem = ?, suggested_service = ?,
+      estimated_value = ?, final_price = ?, deal_amount = ?, cash_received = ?, currency = ?,
       general_notes = ?, normalized_email = ?, normalized_phone = ?,
       updated_at = ?, version = version + 1
     WHERE id = ? AND version = ?
@@ -669,8 +682,13 @@ export function updateClient(user: CurrentUser, clientId: string, input: ClientI
     text(input.messenger), text(input.website),
     formatSourceText(input), category, platform, detail, url,
     text(input.country), text(input.city), text(input.industry),
-    text(input.observedProblem), text(input.suggestedService), Number.isFinite(input.estimatedValue) ? input.estimatedValue : null,
-    text(input.currency) || 'USD', text(input.generalNotes),
+    text(input.observedProblem), text(input.suggestedService),
+    nextEstimatedValue,
+    nextFinalPrice,
+    nextFinalPrice,
+    nextCashReceived,
+    nextCurrency,
+    text(input.generalNotes),
     normalizeEmail(input.email), normalizePhone(input.phone), nowIso(), clientId, version,
   );
   if (!result.changes) throw new Error('Карточка была изменена другим пользователем. Обновите страницу и повторите действие.');
@@ -840,7 +858,7 @@ export function advanceWorkflow(user: CurrentUser, input: WorkflowInput) {
         const desiredTimeline = requireReason(input.desiredTimeline);
         const discoveryNotes = requireReason(input.discoveryNotes);
         setPipelineStage(client, user, 'OFFER', {
-          offer_sent_at: now, final_price: finalPrice, currency: text(input.currency) || client.currency,
+          offer_sent_at: now, final_price: finalPrice, deal_amount: finalPrice, currency: text(input.currency) || client.currency || 'USD',
           suggested_service: text(input.proposedSolution) || client.suggestedService,
           technical_estimate_needed: input.technicalEstimateNeeded || outsideCorridor ? 1 : 0,
           service_package: servicePackage, decision_maker: decisionMaker, budget_notes: budgetNotes,
@@ -859,7 +877,12 @@ export function advanceWorkflow(user: CurrentUser, input: WorkflowInput) {
         if (!['OFFER', 'NEGOTIATION'].includes(client.status)) throw new Error('Сначала согласуйте предложение.');
         const finalPrice = input.finalPrice ? requireAmount(input.finalPrice, 'финальную стоимость') : client.finalPrice;
         if (!finalPrice) throw new Error('Укажите финальную стоимость.');
-        setPipelineStage(client, user, 'PAYMENT_PENDING', { payment_pending_at: now, final_price: finalPrice, currency: text(input.currency) || client.currency });
+        setPipelineStage(client, user, 'PAYMENT_PENDING', {
+          payment_pending_at: now,
+          final_price: finalPrice,
+          deal_amount: finalPrice,
+          currency: text(input.currency) || client.currency || 'USD',
+        });
         break;
       }
       case 'CLOSER_WON': {
@@ -869,9 +892,14 @@ export function advanceWorkflow(user: CurrentUser, input: WorkflowInput) {
         if (!finalPrice) throw new Error('Укажите финальную стоимость.');
         const cash = requireAmount(input.cashReceived, 'фактически полученную сумму');
         setPipelineStage(client, user, 'WON', {
-          final_price: finalPrice, deal_amount: finalPrice, cash_received: cash, payment_received_at: now,
+          final_price: finalPrice,
+          deal_amount: finalPrice,
+          cash_received: cash,
+          payment_received_at: now,
           payment_pending_at: client.paymentPendingAt || now,
-          closed_by_id: user.id, won_at: now, currency: text(input.currency) || client.currency,
+          closed_by_id: user.id,
+          won_at: now,
+          currency: text(input.currency) || client.currency || 'USD',
         });
         break;
       }
@@ -880,7 +908,13 @@ export function advanceWorkflow(user: CurrentUser, input: WorkflowInput) {
         if (client.status !== 'WON') throw new Error('Доплату можно внести только в выигранную сделку.');
         const cash = requireAmount(input.cashReceived, 'общую фактически полученную сумму');
         const finalPrice = input.finalPrice ? requireAmount(input.finalPrice, 'финальную стоимость') : client.finalPrice;
-        setPipelineStage(client, user, 'WON', { cash_received: cash, final_price: finalPrice, deal_amount: finalPrice, payment_received_at: now }, 'Обновлена сумма оплаты');
+        setPipelineStage(client, user, 'WON', {
+          cash_received: cash,
+          final_price: finalPrice,
+          deal_amount: finalPrice,
+          payment_received_at: now,
+          currency: text(input.currency) || client.currency || 'USD',
+        }, 'Обновлена сумма оплаты');
         break;
       }
       case 'CLOSER_LOST': {

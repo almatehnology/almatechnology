@@ -1,6 +1,7 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   ArrowRight,
   Trophy,
@@ -8,7 +9,7 @@ import {
 } from 'lucide-react';
 import { advanceWorkflowAction, type ActionState } from '@/app/[locale]/crm/actions';
 import type { ClientRow } from '@/lib/crm';
-import type { SalesRole } from '@/lib/crm-types';
+import { CURRENCIES, currencyLabels, type SalesRole } from '@/lib/crm-types';
 import { statusLabels } from '@/lib/crm-format';
 import { ActionMessage, SubmitButton } from './FormControls';
 
@@ -68,7 +69,15 @@ function WorkflowForm({
   button: React.ReactNode;
   className?: string;
 }) {
+  const router = useRouter();
   const [state, formAction] = useActionState<ActionState, FormData>(advanceWorkflowAction, {});
+
+  useEffect(() => {
+    if (state.success) {
+      router.refresh();
+    }
+  }, [state.success, router]);
+
   return (
     <form action={formAction} className={`crm-form compact crm-workflow-form ${className}`.trim()}>
       <input type="hidden" name="locale" value={locale} />
@@ -166,6 +175,14 @@ export function WorkflowPanel({
                   <label>
                     Всего фактически получено
                     <input name="cashReceived" type="number" min="0.01" step="0.01" defaultValue={client.cashReceived || ''} required />
+                  </label>
+                  <label>
+                    Валюта
+                    <select name="currency" defaultValue={client.currency || 'USD'}>
+                      {CURRENCIES.map((curr) => (
+                        <option key={curr} value={curr}>{currencyLabels[curr] || curr}</option>
+                      ))}
+                    </select>
                   </label>
                 </div>
               </WorkflowForm>
@@ -482,10 +499,10 @@ export function WorkflowPanel({
                 </label>
                 <label>
                   Валюта
-                  <select name="currency" defaultValue={client.currency}>
-                    <option>USD</option>
-                    <option>ARS</option>
-                    <option>EUR</option>
+                  <select name="currency" defaultValue={client.currency || 'USD'}>
+                    {CURRENCIES.map((curr) => (
+                      <option key={curr} value={curr}>{currencyLabels[curr] || curr}</option>
+                    ))}
                   </select>
                 </label>
               </div>
@@ -514,10 +531,20 @@ export function WorkflowPanel({
               <summary>Другие действия (оплата сразу / проигрыш)...</summary>
               <div className="crm-wizard-alt-form">
                 <WorkflowForm locale={locale} clientId={client.id} action="CLOSER_PAYMENT_PENDING" button="Клиент сразу согласился — ожидать оплату">
-                  <label>
-                    Финальная стоимость договора
-                    <input name="finalPrice" type="number" min="0.01" step="0.01" defaultValue={client.finalPrice || ''} required />
-                  </label>
+                  <div className="crm-form-grid">
+                    <label>
+                      Финальная стоимость договора *
+                      <input name="finalPrice" type="number" min="0.01" step="0.01" defaultValue={client.finalPrice || ''} required />
+                    </label>
+                    <label>
+                      Валюта
+                      <select name="currency" defaultValue={client.currency || 'USD'}>
+                        {CURRENCIES.map((curr) => (
+                          <option key={curr} value={curr}>{currencyLabels[curr] || curr}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
                 </WorkflowForm>
                 <div style={{ marginTop: '12px' }}>
                   <WorkflowForm locale={locale} clientId={client.id} action="CLOSER_LOST" button="Закрыть сделку как проигранную">
@@ -542,10 +569,20 @@ export function WorkflowPanel({
               action="CLOSER_PAYMENT_PENDING"
               button={<>Далее: Условия согласованы — ожидать оплату <ArrowRight size={16} /></>}
             >
-              <label>
-                Итоговая согласованная стоимость договора *
-                <input name="finalPrice" type="number" min="0.01" step="0.01" defaultValue={client.finalPrice || ''} required />
-              </label>
+              <div className="crm-form-grid">
+                <label>
+                  Итоговая согласованная стоимость договора *
+                  <input name="finalPrice" type="number" min="0.01" step="0.01" defaultValue={client.finalPrice || ''} required />
+                </label>
+                <label>
+                  Валюта
+                  <select name="currency" defaultValue={client.currency || 'USD'}>
+                    {CURRENCIES.map((curr) => (
+                      <option key={curr} value={curr}>{currencyLabels[curr] || curr}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
             </WorkflowForm>
             <details className="crm-wizard-alt">
               <summary>Клиент отказался на переговорах...</summary>
@@ -579,6 +616,14 @@ export function WorkflowPanel({
                 <label>
                   Фактически получено (предоплата или 100%) *
                   <input name="cashReceived" type="number" min="0.01" step="0.01" defaultValue={client.cashReceived || client.finalPrice || ''} required />
+                </label>
+                <label>
+                  Валюта
+                  <select name="currency" defaultValue={client.currency || 'USD'}>
+                    {CURRENCIES.map((curr) => (
+                      <option key={curr} value={curr}>{currencyLabels[curr] || curr}</option>
+                    ))}
+                  </select>
                 </label>
               </div>
             </WorkflowForm>
