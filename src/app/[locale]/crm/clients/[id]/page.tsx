@@ -16,8 +16,13 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
   if (!details) notFound();
   const { client, interactions, tasks, transfers, reviews, pipelineEvents } = details;
   const users = listActiveUsers().map((item) => ({ id: item.id, name: item.name, salesRoles: item.salesRoles }));
-  const title = client.companyName || client.contactName;
-  const commissionPool = Math.round(client.cashReceived * (client.researcherCommissionRate + client.verifierCommissionRate + client.sdrCommissionRate + client.closerCommissionRate)) / 100;
+  const title = (client.companyName && client.companyName.trim() !== '-')
+    ? client.companyName
+    : (client.contactName?.trim() || client.suggestedService || client.sourcePlatform || 'Лид');
+  const commissionPool = Math.round(
+    (client.cashReceived || 0) *
+    ((client.researcherCommissionRate || 0) + (client.verifierCommissionRate || 0) + (client.sdrCommissionRate || 0) + (client.closerCommissionRate || 0))
+  ) / 100;
   const canClaim = !client.canEdit && client.ownershipExpired && !['WON', 'LOST', 'VERIFIER_REJECTED', 'SDR_REJECTED', 'NOT_QUALIFIED'].includes(client.status);
 
   return (

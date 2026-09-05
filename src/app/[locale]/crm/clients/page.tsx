@@ -50,6 +50,94 @@ export default async function ClientsPage({ params, searchParams }: { params: Pr
       <select name="attention" defaultValue={selected.attention || ''}><option value="">Все действия</option><option value="overdue">Есть просрочка</option><option value="no_next_task">Нет следующего шага</option></select>
       <button className="crm-button secondary" type="submit">Фильтровать</button>
     </form>
-    <section className="crm-table-card"><div className="crm-table-scroll"><table className="crm-table"><thead><tr><th>Клиент</th><th>Источник</th><th>Ниша / локация</th><th>Проблема и решение</th><th>Статус</th><th>Ответственный</th><th>Следующее действие</th></tr></thead><tbody>{clients.map((client) => <tr key={client.id}><td><Link href={`${base}/${client.id}`}><strong>{client.companyName || client.contactName}</strong><small>{client.companyName && client.contactName ? client.contactName : client.email || client.phone || 'Контакт не указан'}</small></Link></td><td>{client.sourcePlatform || client.sourceCategory ? <div><strong>{client.sourcePlatform || (client.sourceCategory ? sourceCategoryShortLabels[client.sourceCategory] : '—')}</strong><small>{client.sourceCategory ? sourceCategoryShortLabels[client.sourceCategory] || client.sourceCategory : ''}{client.sourceDetail ? ` · ${client.sourceDetail}` : ''}{client.sourceUrl && <a href={client.sourceUrl} target="_blank" rel="noreferrer" className="crm-source-link" title="Открыть первоисточник" onClick={(e) => e.stopPropagation()}>↗</a>}</small></div> : <span>{client.source || '—'}</span>}</td><td><span>{client.industry || '—'}</span><small>{[client.city, client.country].filter(Boolean).join(', ') || '—'}</small></td><td><span>{client.observedProblem || '—'}</span><small>{client.suggestedService || ''}</small></td><td><span className={`crm-status ${client.status.toLowerCase()}`}>{statusLabels[client.status]}</span></td><td>{client.ownerName}{!client.canEdit && <small>только просмотр</small>}</td><td className={client.nextTaskAt && new Date(client.nextTaskAt) < new Date() ? 'crm-overdue-text' : ''}>{client.nextTaskAt ? <><strong>{formatDateTime(client.nextTaskAt)}</strong><small>{client.nextTaskTitle}</small></> : 'Нет действия'}</td></tr>)}</tbody></table></div>{!clients.length && <div className="crm-empty">По этому фильтру клиентов нет. Добавьте первый лид или измените параметры поиска.</div>}</section>
+    <section className="crm-table-card">
+      <div className="crm-table-scroll">
+        <table className="crm-table">
+          <thead>
+            <tr>
+              <th>Клиент</th>
+              <th>Источник</th>
+              <th>Ниша / локация</th>
+              <th>Проблема и решение</th>
+              <th>Статус</th>
+              <th>Ответственный</th>
+              <th>Следующее действие</th>
+            </tr>
+          </thead>
+          <tbody>
+            {clients.map((client) => {
+              const clientDisplayTitle = (client.companyName && client.companyName.trim() !== '-')
+                ? client.companyName
+                : (client.contactName?.trim() || (client.suggestedService ? (client.suggestedService.length > 50 ? client.suggestedService.slice(0, 47) + '…' : client.suggestedService) : '') || client.sourcePlatform || 'Лид');
+
+              const clientSubtitle = client.companyName && client.companyName.trim() !== '-' && client.contactName
+                ? client.contactName
+                : (client.email || client.phone || (client.suggestedService && clientDisplayTitle !== client.suggestedService ? (client.suggestedService.length > 45 ? client.suggestedService.slice(0, 42) + '…' : client.suggestedService) : '') || 'Контакт не указан');
+
+              return (
+                <tr key={client.id}>
+                  <td>
+                    <Link href={`${base}/${client.id}`}>
+                      <strong>{clientDisplayTitle}</strong>
+                      <small>{clientSubtitle}</small>
+                    </Link>
+                  </td>
+                  <td>
+                    {client.sourcePlatform || client.sourceCategory ? (
+                      <div>
+                        <strong>{client.sourcePlatform || (client.sourceCategory ? sourceCategoryShortLabels[client.sourceCategory] : '—')}</strong>
+                        <small>
+                          {client.sourceCategory ? sourceCategoryShortLabels[client.sourceCategory] || client.sourceCategory : ''}
+                          {client.sourceDetail ? ` · ${client.sourceDetail}` : ''}
+                          {client.sourceUrl && (
+                            <a href={client.sourceUrl} target="_blank" rel="noreferrer" className="crm-source-link" title="Открыть первоисточник">
+                              ↗
+                            </a>
+                          )}
+                        </small>
+                      </div>
+                    ) : (
+                      <span>{client.source || '—'}</span>
+                    )}
+                  </td>
+                  <td>
+                    <span>{client.industry || '—'}</span>
+                    <small>{[client.city, client.country].filter(Boolean).join(', ') || '—'}</small>
+                  </td>
+                  <td>
+                    <span>{client.observedProblem || '—'}</span>
+                    <small>{client.suggestedService || ''}</small>
+                  </td>
+                  <td>
+                    <span className={`crm-status ${client.status.toLowerCase()}`}>
+                      {statusLabels[client.status]}
+                    </span>
+                  </td>
+                  <td>
+                    {client.ownerName}
+                    {!client.canEdit && <small>только просмотр</small>}
+                  </td>
+                  <td className={client.nextTaskAt && new Date(client.nextTaskAt) < new Date() ? 'crm-overdue-text' : ''}>
+                    {client.nextTaskAt ? (
+                      <>
+                        <strong>{formatDateTime(client.nextTaskAt)}</strong>
+                        <small>{client.nextTaskTitle}</small>
+                      </>
+                    ) : (
+                      'Нет действия'
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {!clients.length && (
+        <div className="crm-empty">
+          По этому фильтру клиентов нет. Добавьте первый лид или измените параметры поиска.
+        </div>
+      )}
+    </section>
   </div></CrmShell>;
 }
