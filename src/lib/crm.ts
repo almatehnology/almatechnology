@@ -363,8 +363,8 @@ function isEditor(client: Pick<ClientRow, 'ownerId'>, user: CurrentUser) {
 }
 
 function ensureValidClient(input: ClientInput) {
-  if (!input.companyName.trim() && !input.contactName.trim()) {
-    throw new Error('Укажите компанию или контактное лицо.');
+  if (!input.companyName.trim() && !input.contactName.trim() && !input.sourceUrl?.trim() && !input.suggestedService?.trim()) {
+    throw new Error('Укажите компанию, контактное лицо, ссылку на источник или предлагаемую услугу.');
   }
 }
 
@@ -549,12 +549,13 @@ export function getClientDetails(user: CurrentUser, clientId: string) {
   return { client, interactions, tasks, transfers, reviews, pipelineEvents };
 }
 
-export function findClientDuplicates(input: Pick<ClientInput, 'email' | 'phone' | 'companyName'>) {
+export function findClientDuplicates(input: Pick<ClientInput, 'email' | 'phone' | 'companyName'> & { sourceUrl?: string | null }) {
   const clauses: string[] = [];
   const params: unknown[] = [];
   const email = normalizeEmail(input.email);
   const phone = normalizePhone(input.phone);
   const company = input.companyName.trim().toLowerCase();
+  const sourceUrl = input.sourceUrl?.trim();
 
   if (email) {
     clauses.push('c.normalized_email = ?');
@@ -564,9 +565,13 @@ export function findClientDuplicates(input: Pick<ClientInput, 'email' | 'phone' 
     clauses.push('c.normalized_phone = ?');
     params.push(phone);
   }
-  if (company.length >= 3) {
+  if (company.length >= 3 && company !== '-') {
     clauses.push('lower(c.company_name) = ?');
     params.push(company);
+  }
+  if (sourceUrl && sourceUrl.length >= 10) {
+    clauses.push('c.source_url = ?');
+    params.push(sourceUrl);
   }
   if (!clauses.length) return [] as ClientRow[];
 

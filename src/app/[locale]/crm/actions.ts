@@ -85,7 +85,11 @@ export async function createClientAction(_: ActionState, formData: FormData): Pr
     const input = clientInput(formData);
     const duplicates = findClientDuplicates(input);
     if (duplicates.length) {
-      const labels = duplicates.map((client) => client.companyName || client.contactName).join(', ');
+      const labels = duplicates.map((client) => {
+        return (client.companyName && client.companyName.trim() !== '-')
+          ? client.companyName
+          : (client.contactName?.trim() || client.suggestedService || client.sourcePlatform || 'Клиент');
+      }).join(', ');
       return { error: `Похоже, такой лид уже есть: ${labels}. Откройте существующую карточку, чтобы не пересекаться с коллегами.` };
     }
     const id = createClient(user, input);

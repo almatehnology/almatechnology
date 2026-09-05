@@ -7,7 +7,9 @@ import { CompleteTaskForm } from './TaskForms';
 type TeamUser = { id: string; name: string };
 
 export function TaskCard({ task, locale, users, currentUserId, canComplete, showDate = true }: { task: TaskRow; locale: string; users: TeamUser[]; currentUserId: string; canComplete: boolean; showDate?: boolean }) {
-  const clientTitle = task.companyName || task.clientName || 'Без названия';
+  const clientTitle = (task.companyName && task.companyName.trim() !== '-')
+    ? task.companyName
+    : (task.clientName?.trim() || 'Клиент');
   return <article className={`crm-task ${task.status === 'OPEN' && isOverdue(task.dueAt) ? 'overdue' : ''}`}>
     <div className="crm-task-top"><span className="crm-task-type"><Phone size={15} />{taskTypeLabels[task.type]}</span>{showDate && <span><Clock3 size={15} />{formatDateTime(task.dueAt)}</span>}</div>
     <Link className="crm-task-client" href={`/${locale}/crm/clients/${task.clientId}`}>{clientTitle}</Link>

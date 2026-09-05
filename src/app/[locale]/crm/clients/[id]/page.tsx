@@ -49,11 +49,11 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
                 {client.sourcePlatform || 'Источник'}
               </a>
             )}
-            {client.phone && <a href={`tel:${client.phone}`}><Phone size={17} />{client.phone}</a>}
-            {client.email && <a href={`mailto:${client.email}`}><Mail size={17} />{client.email}</a>}
-            {client.messenger && <span><MessageCircle size={17} />{client.messenger}</span>}
-            {client.website && (
-              <a href={client.website.startsWith('http') ? client.website : `https://${client.website}`} target="_blank" rel="noreferrer">
+            {client.phone?.trim() && <a href={`tel:${client.phone.trim()}`}><Phone size={17} />{client.phone.trim()}</a>}
+            {client.email?.trim() && <a href={`mailto:${client.email.trim()}`}><Mail size={17} />{client.email.trim()}</a>}
+            {client.messenger?.trim() && <span><MessageCircle size={17} />{client.messenger.trim()}</span>}
+            {client.website?.trim() && (
+              <a href={client.website.trim().startsWith('http') ? client.website.trim() : `https://${client.website.trim()}`} target="_blank" rel="noreferrer">
                 <ExternalLink size={17} />Сайт
               </a>
             )}
