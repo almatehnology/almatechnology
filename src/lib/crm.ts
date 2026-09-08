@@ -27,7 +27,8 @@ export type ClientInput = {
   industry?: string;
   observedProblem?: string;
   suggestedService?: string;
-  estimatedValue?: number;
+  estimatedValue?: number | null;
+  estimatedValueMax?: number | null;
   finalPrice?: number | null;
   cashReceived?: number | null;
   currency?: string;
@@ -109,6 +110,7 @@ export type ClientRow = {
   observedProblem: string | null;
   suggestedService: string | null;
   estimatedValue: number | null;
+  estimatedValueMax: number | null;
   currency: string;
   status: ClientStatus;
   ownerId: string;
@@ -248,6 +250,7 @@ const clientProjection = `
   c.observed_problem AS observedProblem,
   c.suggested_service AS suggestedService,
   c.estimated_value AS estimatedValue,
+  c.estimated_value_max AS estimatedValueMax,
   c.currency AS currency,
   c.pipeline_stage AS status,
   c.owner_id AS ownerId,
@@ -600,7 +603,7 @@ export function createClient(user: CurrentUser, input: ClientInput) {
       id, company_name, contact_name, position, email, phone, messenger, website,
       source, source_category, source_platform, source_detail, source_url,
       country, city, industry,
-      observed_problem, suggested_service, estimated_value, currency, status, pipeline_stage,
+      observed_problem, suggested_service, estimated_value, estimated_value_max, currency, status, pipeline_stage,
       researcher_commission_rate, verifier_commission_rate, sdr_commission_rate, closer_commission_rate,
       owner_id, created_by_id, researcher_id, verifier_owner_id, ownership_expires_at, general_notes,
       normalized_email, normalized_phone, created_at, updated_at
@@ -608,7 +611,7 @@ export function createClient(user: CurrentUser, input: ClientInput) {
       ?, ?, ?, ?, ?, ?, ?, ?,
       ?, ?, ?, ?, ?,
       ?, ?, ?,
-      ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?, ?,
       ?, ?, ?, ?,
       ?, ?, ?, ?, ?, ?,
       ?, ?, ?, ?
@@ -633,6 +636,7 @@ export function createClient(user: CurrentUser, input: ClientInput) {
     text(input.observedProblem),
     text(input.suggestedService),
     Number.isFinite(input.estimatedValue) ? input.estimatedValue : null,
+    Number.isFinite(input.estimatedValueMax) ? input.estimatedValueMax : null,
     text(input.currency) || 'USD',
     'NEW',
     'RESEARCH',
@@ -665,6 +669,9 @@ export function updateClient(user: CurrentUser, clientId: string, input: ClientI
   const nextEstimatedValue = input.estimatedValue !== undefined
     ? (Number.isFinite(input.estimatedValue) ? input.estimatedValue : null)
     : client.estimatedValue;
+  const nextEstimatedValueMax = input.estimatedValueMax !== undefined
+    ? (Number.isFinite(input.estimatedValueMax) ? input.estimatedValueMax : null)
+    : client.estimatedValueMax;
   const nextFinalPrice = input.finalPrice !== undefined
     ? (Number.isFinite(input.finalPrice) ? input.finalPrice : null)
     : client.finalPrice;
@@ -678,7 +685,7 @@ export function updateClient(user: CurrentUser, clientId: string, input: ClientI
       company_name = ?, contact_name = ?, position = ?, email = ?, phone = ?, messenger = ?, website = ?,
       source = ?, source_category = ?, source_platform = ?, source_detail = ?, source_url = ?,
       country = ?, city = ?, industry = ?, observed_problem = ?, suggested_service = ?,
-      estimated_value = ?, final_price = ?, deal_amount = ?, cash_received = ?, currency = ?,
+      estimated_value = ?, estimated_value_max = ?, final_price = ?, deal_amount = ?, cash_received = ?, currency = ?,
       general_notes = ?, normalized_email = ?, normalized_phone = ?,
       updated_at = ?, version = version + 1
     WHERE id = ? AND version = ?
@@ -689,6 +696,7 @@ export function updateClient(user: CurrentUser, clientId: string, input: ClientI
     text(input.country), text(input.city), text(input.industry),
     text(input.observedProblem), text(input.suggestedService),
     nextEstimatedValue,
+    nextEstimatedValueMax,
     nextFinalPrice,
     nextFinalPrice,
     nextCashReceived,

@@ -286,6 +286,10 @@ migrate('009_ensure_commission_and_pipeline', `
   WHERE researcher_commission_rate != 7.5 OR verifier_commission_rate != 7.5 OR sdr_commission_rate != 17.5 OR closer_commission_rate != 17.5;
 `);
 
+migrate('010_client_estimated_value_max', `
+  ALTER TABLE clients ADD COLUMN estimated_value_max REAL;
+`);
+
 console.log(`Database is ready: ${databasePath}`);
 db.close();
 

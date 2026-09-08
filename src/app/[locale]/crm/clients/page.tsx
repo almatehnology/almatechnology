@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Plus, Search } from 'lucide-react';
 import { CrmShell } from '@/components/crm/CrmShell';
 import { listActiveUsers, listClients, SOURCE_CATEGORIES, type ClientFilters } from '@/lib/crm';
-import { formatDateTime, sourceCategoryLabels, sourceCategoryShortLabels, statusLabels } from '@/lib/crm-format';
+import { formatBudgetRange, formatDateTime, sourceCategoryLabels, sourceCategoryShortLabels, statusLabels } from '@/lib/crm-format';
 import { requireUser } from '@/lib/session';
 
 type SearchParams = {
@@ -106,7 +106,13 @@ export default async function ClientsPage({ params, searchParams }: { params: Pr
                   </td>
                   <td>
                     <span>{client.observedProblem || '—'}</span>
-                    <small>{client.suggestedService || ''}</small>
+                    <small>
+                      {(() => {
+                        const budget = formatBudgetRange(client.estimatedValue, client.estimatedValueMax, client.currency);
+                        if (!client.suggestedService) return budget !== '—' ? budget : '';
+                        return budget !== '—' ? `${client.suggestedService} · ${budget}` : client.suggestedService;
+                      })()}
+                    </small>
                   </td>
                   <td>
                     <span className={`crm-status ${client.status.toLowerCase()}`}>

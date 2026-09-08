@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import type { ClientRow, TaskRow, InteractionRow, TransferRow, ReviewRow, PipelineEventRow } from '@/lib/crm';
 import type { SalesRole } from '@/lib/crm-types';
-import { formatDateTime, interactionChannelLabels, sourceCategoryLabels, statusLabels } from '@/lib/crm-format';
+import { formatBudgetRange, formatDateTime, interactionChannelLabels, sourceCategoryLabels, statusLabels } from '@/lib/crm-format';
 import { TaskCard } from './TaskCard';
 import { ClientForm } from './ClientForm';
 import { ArchiveClientButton } from './ArchiveClientButton';
@@ -250,7 +250,7 @@ export function ClientDetailTabs({
               <div><dt>8. Verifier</dt><dd>{client.verifiedByName || client.verifierOwnerName || '—'}</dd></div>
               <div><dt>9. SDR</dt><dd>{client.sdrOwnerName || '—'}</dd></div>
               <div><dt>10. Closer</dt><dd>{client.closerOwnerName || '—'}</dd></div>
-              <div><dt>11. Ориентир бюджета</dt><dd>{client.estimatedValue ? `${client.estimatedValue} ${client.currency}` : '—'}</dd></div>
+              <div><dt>11. Ориентир бюджета</dt><dd>{formatBudgetRange(client.estimatedValue, client.estimatedValueMax, client.currency)}</dd></div>
               <div><dt>12. Стоимость договора</dt><dd>{client.finalPrice ? `${client.finalPrice} ${client.currency}` : '—'}</dd></div>
               <div><dt>13. Фактически получено</dt><dd>{client.cashReceived ? `${client.cashReceived} ${client.currency}` : '—'}</dd></div>
               <div><dt>14. Комиссионный пул</dt><dd>{client.cashReceived ? `${commissionPool} ${client.currency}` : '—'}</dd></div>

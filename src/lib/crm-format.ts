@@ -78,3 +78,15 @@ export function formatDate(value?: string | null) {
 export function isOverdue(value: string) {
   return new Date(value).getTime() < Date.now();
 }
+
+export function formatBudgetRange(min?: number | null, max?: number | null, currency = 'USD') {
+  const hasMin = typeof min === 'number' && Number.isFinite(min);
+  const hasMax = typeof max === 'number' && Number.isFinite(max);
+  if (hasMin && hasMax) {
+    if (min === max) return `${min} ${currency}`;
+    return `${min} – ${max} ${currency}`;
+  }
+  if (hasMin) return `от ${min} ${currency}`;
+  if (hasMax) return `до ${max} ${currency}`;
+  return '—';
+}

@@ -172,7 +172,8 @@ export function ClientForm({
       <div className="crm-form-grid">
         <label>Страна<input name="country" defaultValue={client?.country || ''} placeholder="Argentina" /></label>
         <label>Город<input name="city" defaultValue={client?.city || ''} placeholder="Mendoza" /></label>
-        <label>Ориентир суммы<input name="estimatedValue" type="number" min="0" step="0.01" defaultValue={client?.estimatedValue ?? ''} placeholder="200" /></label>
+        <label>Ориентир бюджета от<input name="estimatedValue" type="number" min="0" step="0.01" defaultValue={client?.estimatedValue ?? ''} placeholder="200" /></label>
+        <label>Ориентир бюджета до<input name="estimatedValueMax" type="number" min="0" step="0.01" defaultValue={client?.estimatedValueMax ?? ''} placeholder="500" /></label>
         {client && (
           <>
             <label>Стоимость договора<input name="finalPrice" type="number" min="0" step="0.01" defaultValue={client?.finalPrice ?? ''} placeholder="400" /></label>
