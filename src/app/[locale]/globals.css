@@ -525,4 +525,176 @@ body {
   margin-bottom: 14px;
 }
 
+/* Urgent / Priority Lead Switch & Badges */
+.crm-urgent-toggle-wrap {
+  display: flex;
+  align-items: center;
+  background: #191b21;
+  border: 1px solid #2e313b;
+  border-radius: 10px;
+  padding: 12px 16px;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
 
+.crm-urgent-toggle-wrap:has(.crm-switch-input:checked) {
+  background: linear-gradient(90deg, rgba(255, 69, 0, 0.12) 0%, rgba(255, 136, 0, 0.05) 100%);
+  border-color: rgba(255, 87, 34, 0.5);
+  box-shadow: 0 0 16px rgba(255, 87, 34, 0.12);
+}
+
+.crm-switch-label {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  width: 100%;
+  user-select: none;
+}
+
+.crm-switch-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.crm-switch-slider {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  background: #272a33;
+  border: 1px solid #3d414f;
+  border-radius: 14px;
+  flex-shrink: 0;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.crm-switch-slider::before {
+  content: '';
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background: #a6adb9;
+  border-radius: 50%;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.crm-switch-input:checked + .crm-switch-slider {
+  background: linear-gradient(135deg, #ff4500 0%, #ff8c00 100%);
+  border-color: #ff5722;
+  box-shadow: 0 0 12px rgba(255, 87, 34, 0.45);
+}
+
+.crm-switch-input:checked + .crm-switch-slider::before {
+  transform: translateX(20px);
+  background: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.crm-switch-input:focus-visible + .crm-switch-slider {
+  outline: 2px solid #ff7043;
+  outline-offset: 2px;
+}
+
+.crm-switch-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.crm-switch-text strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #e9ecf2;
+  transition: color 0.2s ease;
+}
+
+.crm-switch-input:checked ~ .crm-switch-text strong {
+  color: #ffab91;
+}
+
+.crm-switch-text small {
+  color: #9299a6;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.crm-fire-icon {
+  font-size: 16px;
+  display: inline-block;
+}
+
+.crm-switch-input:checked ~ .crm-switch-text .crm-fire-icon {
+  animation: crmPulseFire 1.5s ease-in-out infinite;
+}
+
+/* Urgent / Priority Lead row in clients table */
+.crm-table tr.crm-row-urgent {
+  background: linear-gradient(90deg, rgba(255, 69, 0, 0.18) 0%, rgba(255, 109, 0, 0.09) 30%, rgba(255, 87, 34, 0.03) 100%) !important;
+}
+
+.crm-table tr.crm-row-urgent:hover {
+  background: linear-gradient(90deg, rgba(255, 69, 0, 0.26) 0%, rgba(255, 109, 0, 0.14) 35%, rgba(255, 87, 34, 0.06) 100%) !important;
+}
+
+.crm-table tr.crm-row-urgent td {
+  border-top-color: rgba(255, 87, 34, 0.4) !important;
+  border-bottom: 1px solid rgba(255, 87, 34, 0.4) !important;
+}
+
+.crm-table tr.crm-row-urgent td:first-child {
+  border-left: 4px solid #ff4500 !important;
+  box-shadow: inset 4px 0 10px -2px rgba(255, 87, 34, 0.5);
+}
+
+.crm-title-urgent {
+  color: #ffccbc !important;
+  font-weight: 800 !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  text-shadow: 0 0 12px rgba(255, 87, 34, 0.35);
+}
+
+.crm-fire-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  animation: crmPulseFire 1.8s ease-in-out infinite;
+}
+
+@keyframes crmPulseFire {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 2px rgba(255, 109, 0, 0.5));
+  }
+  50% {
+    transform: scale(1.18);
+    filter: drop-shadow(0 0 8px rgba(255, 69, 0, 0.9));
+  }
+}
+
+.crm-badge-urgent {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(255, 69, 0, 0.28), rgba(255, 152, 0, 0.2));
+  border: 1px solid rgba(255, 87, 34, 0.65);
+  color: #ffccbc;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 0 12px rgba(255, 87, 34, 0.25);
+}

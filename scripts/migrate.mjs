@@ -290,6 +290,11 @@ migrate('010_client_estimated_value_max', `
   ALTER TABLE clients ADD COLUMN estimated_value_max REAL;
 `);
 
+migrate('011_client_is_urgent', `
+  ALTER TABLE clients ADD COLUMN is_urgent INTEGER NOT NULL DEFAULT 0;
+  CREATE INDEX IF NOT EXISTS clients_is_urgent_idx ON clients(is_urgent);
+`);
+
 console.log(`Database is ready: ${databasePath}`);
 db.close();
 

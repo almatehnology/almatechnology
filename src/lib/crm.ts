@@ -29,6 +29,7 @@ export type ClientInput = {
   suggestedService?: string;
   estimatedValue?: number | null;
   estimatedValueMax?: number | null;
+  isUrgent?: boolean;
   finalPrice?: number | null;
   cashReceived?: number | null;
   currency?: string;
@@ -85,7 +86,7 @@ export type ClientFilters = {
   status?: string;
   ownerId?: string;
   search?: string;
-  attention?: 'overdue' | 'no_next_task';
+  attention?: 'overdue' | 'no_next_task' | 'urgent';
   sourceCategory?: string;
   sourcePlatform?: string;
 };
@@ -111,6 +112,7 @@ export type ClientRow = {
   suggestedService: string | null;
   estimatedValue: number | null;
   estimatedValueMax: number | null;
+  isUrgent: boolean;
   currency: string;
   status: ClientStatus;
   ownerId: string;
@@ -167,7 +169,7 @@ export type ClientRow = {
   canEdit: boolean;
 };
 
-type DbClientRow = Omit<ClientRow, 'canEdit'>;
+type DbClientRow = Omit<ClientRow, 'canEdit' | 'isUrgent'> & { isUrgent: number | boolean };
 
 export type TaskRow = {
   id: string;
@@ -251,6 +253,7 @@ const clientProjection = `
   c.suggested_service AS suggestedService,
   c.estimated_value AS estimatedValue,
   c.estimated_value_max AS estimatedValueMax,
+  c.is_urgent AS isUrgent,
   c.currency AS currency,
   c.pipeline_stage AS status,
   c.owner_id AS ownerId,
@@ -365,6 +368,14 @@ function isEditor(client: Pick<ClientRow, 'ownerId'>, user: CurrentUser) {
   return user.role === 'admin' || client.ownerId === user.id;
 }
 
+function mapClientRow(row: DbClientRow, user: CurrentUser): ClientRow {
+  return {
+    ...row,
+    isUrgent: Boolean(row.isUrgent),
+    canEdit: isEditor(row, user),
+  };
+}
+
 function ensureValidClient(input: ClientInput) {
   if (!input.companyName.trim() && !input.contactName.trim() && !input.sourceUrl?.trim() && !input.suggestedService?.trim()) {
     throw new Error('Укажите компанию, контактное лицо, ссылку на источник или предлагаемую услугу.');
@@ -468,6 +479,9 @@ export function listClients(user: CurrentUser, filters: ClientFilters = {}): Cli
   if (filters.attention === 'no_next_task') {
     conditions.push(`c.pipeline_stage NOT IN ('WON', 'LOST', 'VERIFIER_REJECTED', 'SDR_REJECTED', 'NOT_QUALIFIED') AND NOT EXISTS (SELECT 1 FROM tasks t WHERE t.client_id = c.id AND t.status = 'OPEN')`);
   }
+  if (filters.attention === 'urgent') {
+    conditions.push('c.is_urgent = 1');
+  }
 
   const rows = db
     .prepare(`
@@ -476,6 +490,7 @@ export function listClients(user: CurrentUser, filters: ClientFilters = {}): Cli
       ${clientJoins}
       WHERE ${conditions.join(' AND ')}
       ORDER BY
+        c.is_urgent DESC,
         CASE WHEN EXISTS (SELECT 1 FROM tasks t WHERE t.client_id = c.id AND t.status = 'OPEN' AND t.due_at < ?) THEN 0 ELSE 1 END,
         nextTaskAt IS NULL,
         nextTaskAt ASC,
@@ -483,7 +498,7 @@ export function listClients(user: CurrentUser, filters: ClientFilters = {}): Cli
     `)
     .all(...params, nowIso()) as DbClientRow[];
 
-  return rows.map((row) => ({ ...row, canEdit: isEditor(row, user) }));
+  return rows.map((row) => mapClientRow(row, user));
 }
 
 export function getClient(user: CurrentUser, clientId: string): ClientRow | null {
@@ -491,7 +506,7 @@ export function getClient(user: CurrentUser, clientId: string): ClientRow | null
     .prepare(`SELECT ${clientProjection} FROM clients c ${clientJoins} WHERE c.id = ?`)
     .get(clientId) as DbClientRow | undefined;
   if (!row || (row.archivedAt && user.role !== 'admin')) return null;
-  return { ...row, canEdit: isEditor(row, user) };
+  return mapClientRow(row, user);
 }
 
 export function getClientDetails(user: CurrentUser, clientId: string) {
@@ -603,7 +618,7 @@ export function createClient(user: CurrentUser, input: ClientInput) {
       id, company_name, contact_name, position, email, phone, messenger, website,
       source, source_category, source_platform, source_detail, source_url,
       country, city, industry,
-      observed_problem, suggested_service, estimated_value, estimated_value_max, currency, status, pipeline_stage,
+      observed_problem, suggested_service, estimated_value, estimated_value_max, is_urgent, currency, status, pipeline_stage,
       researcher_commission_rate, verifier_commission_rate, sdr_commission_rate, closer_commission_rate,
       owner_id, created_by_id, researcher_id, verifier_owner_id, ownership_expires_at, general_notes,
       normalized_email, normalized_phone, created_at, updated_at
@@ -611,7 +626,7 @@ export function createClient(user: CurrentUser, input: ClientInput) {
       ?, ?, ?, ?, ?, ?, ?, ?,
       ?, ?, ?, ?, ?,
       ?, ?, ?,
-      ?, ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?, ?, ?,
       ?, ?, ?, ?,
       ?, ?, ?, ?, ?, ?,
       ?, ?, ?, ?
@@ -637,6 +652,7 @@ export function createClient(user: CurrentUser, input: ClientInput) {
     text(input.suggestedService),
     Number.isFinite(input.estimatedValue) ? input.estimatedValue : null,
     Number.isFinite(input.estimatedValueMax) ? input.estimatedValueMax : null,
+    input.isUrgent ? 1 : 0,
     text(input.currency) || 'USD',
     'NEW',
     'RESEARCH',
@@ -672,6 +688,9 @@ export function updateClient(user: CurrentUser, clientId: string, input: ClientI
   const nextEstimatedValueMax = input.estimatedValueMax !== undefined
     ? (Number.isFinite(input.estimatedValueMax) ? input.estimatedValueMax : null)
     : client.estimatedValueMax;
+  const nextIsUrgent = input.isUrgent !== undefined
+    ? (input.isUrgent ? 1 : 0)
+    : (client.isUrgent ? 1 : 0);
   const nextFinalPrice = input.finalPrice !== undefined
     ? (Number.isFinite(input.finalPrice) ? input.finalPrice : null)
     : client.finalPrice;
@@ -685,7 +704,7 @@ export function updateClient(user: CurrentUser, clientId: string, input: ClientI
       company_name = ?, contact_name = ?, position = ?, email = ?, phone = ?, messenger = ?, website = ?,
       source = ?, source_category = ?, source_platform = ?, source_detail = ?, source_url = ?,
       country = ?, city = ?, industry = ?, observed_problem = ?, suggested_service = ?,
-      estimated_value = ?, estimated_value_max = ?, final_price = ?, deal_amount = ?, cash_received = ?, currency = ?,
+      estimated_value = ?, estimated_value_max = ?, is_urgent = ?, final_price = ?, deal_amount = ?, cash_received = ?, currency = ?,
       general_notes = ?, normalized_email = ?, normalized_phone = ?,
       updated_at = ?, version = version + 1
     WHERE id = ? AND version = ?
@@ -697,6 +716,7 @@ export function updateClient(user: CurrentUser, clientId: string, input: ClientI
     text(input.observedProblem), text(input.suggestedService),
     nextEstimatedValue,
     nextEstimatedValueMax,
+    nextIsUrgent,
     nextFinalPrice,
     nextFinalPrice,
     nextCashReceived,

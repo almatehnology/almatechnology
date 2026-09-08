@@ -67,6 +67,9 @@ function clientInput(formData: FormData): ClientInput {
     suggestedService: optionalValue(formData, 'suggestedService'),
     estimatedValue: formData.has('estimatedValue') ? (optionalValue(formData, 'estimatedValue') ? Number(optionalValue(formData, 'estimatedValue')) : null) : undefined,
     estimatedValueMax: formData.has('estimatedValueMax') ? (optionalValue(formData, 'estimatedValueMax') ? Number(optionalValue(formData, 'estimatedValueMax')) : null) : undefined,
+    isUrgent: formData.has('isUrgentSubmitted')
+      ? (value(formData, 'isUrgent') === 'on' || value(formData, 'isUrgent') === 'true')
+      : (formData.has('isUrgent') ? (value(formData, 'isUrgent') === 'on' || value(formData, 'isUrgent') === 'true') : undefined),
     finalPrice: formData.has('finalPrice') ? (optionalValue(formData, 'finalPrice') ? Number(optionalValue(formData, 'finalPrice')) : null) : undefined,
     cashReceived: formData.has('cashReceived') ? (optionalValue(formData, 'cashReceived') ? Number(optionalValue(formData, 'cashReceived')) : null) : undefined,
     currency: optionalValue(formData, 'currency'),

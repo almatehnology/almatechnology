@@ -74,7 +74,25 @@ export function ClientForm({
         </>
       )}
 
+      <input type="hidden" name="isUrgentSubmitted" value="1" />
+
       <div className="crm-form-grid">
+        <div className="crm-urgent-toggle-wrap crm-span-2">
+          <label className="crm-switch-label">
+            <input
+              type="checkbox"
+              name="isUrgent"
+              defaultChecked={Boolean(client?.isUrgent)}
+              className="crm-switch-input"
+            />
+            <span className="crm-switch-slider"></span>
+            <span className="crm-switch-text">
+              <span className="crm-fire-icon">🔥</span>
+              <strong>Срочный приоритет</strong>
+              <small>Клиент требует немедленного внимания и связи в первую очередь</small>
+            </span>
+          </label>
+        </div>
         <label>Компания<input name="companyName" defaultValue={client?.companyName} placeholder="Например, Orion Studio" /></label>
         <label>Контактное лицо<input name="contactName" defaultValue={client?.contactName} placeholder="Имя и фамилия" /></label>
         <label>Должность<input name="position" defaultValue={client?.position || ''} placeholder="CEO, маркетолог…" /></label>

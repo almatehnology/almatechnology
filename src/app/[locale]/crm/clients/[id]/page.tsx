@@ -40,6 +40,11 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
             <span className={`crm-status ${client.status.toLowerCase()}`}>
               {statusLabels[client.status]}
             </span>
+            {client.isUrgent && (
+              <span className="crm-badge-urgent" style={{ marginLeft: 8 }} title="Срочный приоритет">
+                🔥 Срочный приоритет
+              </span>
+            )}
             <p>Ответственный: <strong>{client.ownerName}</strong></p>
           </div>
           <div className="crm-contact-links">

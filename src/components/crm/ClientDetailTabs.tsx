@@ -212,6 +212,16 @@ export function ClientDetailTabs({
             <h2>Данные лида</h2>
             <dl className="crm-data-list">
               <div>
+                <dt>Приоритет</dt>
+                <dd>
+                  {client.isUrgent ? (
+                    <span className="crm-badge-urgent">🔥 Срочный (максимальный)</span>
+                  ) : (
+                    'Обычный'
+                  )}
+                </dd>
+              </div>
+              <div>
                 <dt>1. Контактное лицо</dt>
                 <dd>{client.contactName || '—'}{client.position ? `, ${client.position}` : ''}</dd>
               </div>
