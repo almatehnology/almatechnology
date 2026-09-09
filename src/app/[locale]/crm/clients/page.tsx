@@ -10,7 +10,7 @@ type SearchParams = {
   status?: string;
   ownerId?: string;
   search?: string;
-  attention?: 'overdue' | 'no_next_task';
+  attention?: 'overdue' | 'no_next_task' | 'urgent' | 'quality';
   sourceCategory?: string;
   sourcePlatform?: string;
 };
@@ -47,7 +47,13 @@ export default async function ClientsPage({ params, searchParams }: { params: Pr
       </select>
       <input name="sourcePlatform" defaultValue={selected.sourcePlatform || ''} placeholder="Площадка (Upwork, TG…)" style={{ minWidth: 150 }} />
       {(user.role === 'admin' || selected.scope === 'all') && <select name="ownerId" defaultValue={selected.ownerId || ''}><option value="">Все ответственные</option>{users.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>}
-      <select name="attention" defaultValue={selected.attention || ''}><option value="">Все действия</option><option value="urgent">🔥 Только срочные</option><option value="overdue">Есть просрочка</option><option value="no_next_task">Нет следующего шага</option></select>
+      <select name="attention" defaultValue={selected.attention || ''}>
+        <option value="">Все действия</option>
+        <option value="urgent">🔥 Только срочные</option>
+        <option value="quality">❤️ Только качественные (сердечко)</option>
+        <option value="overdue">Есть просрочка</option>
+        <option value="no_next_task">Нет следующего шага</option>
+      </select>
       <button className="crm-button secondary" type="submit">Фильтровать</button>
     </form>
     <section className="crm-table-card">
@@ -74,12 +80,23 @@ export default async function ClientsPage({ params, searchParams }: { params: Pr
                 ? client.contactName
                 : (client.email || client.phone || (client.suggestedService && clientDisplayTitle !== client.suggestedService ? (client.suggestedService.length > 45 ? client.suggestedService.slice(0, 42) + '…' : client.suggestedService) : '') || 'Контакт не указан');
 
+              const rowClass = [
+                client.isUrgent ? 'crm-row-urgent' : '',
+                (!client.isUrgent && client.isQuality) ? 'crm-row-quality' : '',
+              ].filter(Boolean).join(' ');
+
+              const titleClass = [
+                client.isUrgent ? 'crm-title-urgent' : '',
+                (!client.isUrgent && client.isQuality) ? 'crm-title-quality' : '',
+              ].filter(Boolean).join(' ');
+
               return (
-                <tr key={client.id} className={client.isUrgent ? 'crm-row-urgent' : ''}>
+                <tr key={client.id} className={rowClass}>
                   <td>
                     <Link href={`${base}/${client.id}`}>
-                      <strong className={client.isUrgent ? 'crm-title-urgent' : ''}>
+                      <strong className={titleClass}>
                         {client.isUrgent && <span className="crm-fire-tag" title="Срочный приоритет">🔥</span>}
+                        {client.isQuality && <span className="crm-heart-tag" title="Качественный заказ (сердечко)">❤️</span>}
                         {clientDisplayTitle}
                       </strong>
                       <small>{clientSubtitle}</small>

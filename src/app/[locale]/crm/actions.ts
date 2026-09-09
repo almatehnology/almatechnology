@@ -70,6 +70,9 @@ function clientInput(formData: FormData): ClientInput {
     isUrgent: formData.has('isUrgentSubmitted')
       ? (value(formData, 'isUrgent') === 'on' || value(formData, 'isUrgent') === 'true')
       : (formData.has('isUrgent') ? (value(formData, 'isUrgent') === 'on' || value(formData, 'isUrgent') === 'true') : undefined),
+    isQuality: formData.has('isQualitySubmitted')
+      ? (value(formData, 'isQuality') === 'on' || value(formData, 'isQuality') === 'true')
+      : (formData.has('isQuality') ? (value(formData, 'isQuality') === 'on' || value(formData, 'isQuality') === 'true') : undefined),
     finalPrice: formData.has('finalPrice') ? (optionalValue(formData, 'finalPrice') ? Number(optionalValue(formData, 'finalPrice')) : null) : undefined,
     cashReceived: formData.has('cashReceived') ? (optionalValue(formData, 'cashReceived') ? Number(optionalValue(formData, 'cashReceived')) : null) : undefined,
     currency: optionalValue(formData, 'currency'),

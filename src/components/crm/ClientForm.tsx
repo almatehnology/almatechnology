@@ -75,23 +75,43 @@ export function ClientForm({
       )}
 
       <input type="hidden" name="isUrgentSubmitted" value="1" />
+      <input type="hidden" name="isQualitySubmitted" value="1" />
 
       <div className="crm-form-grid">
-        <div className="crm-urgent-toggle-wrap crm-span-2">
-          <label className="crm-switch-label">
-            <input
-              type="checkbox"
-              name="isUrgent"
-              defaultChecked={Boolean(client?.isUrgent)}
-              className="crm-switch-input"
-            />
-            <span className="crm-switch-slider"></span>
-            <span className="crm-switch-text">
-              <span className="crm-fire-icon">🔥</span>
-              <strong>Срочный приоритет</strong>
-              <small>Клиент требует немедленного внимания и связи в первую очередь</small>
-            </span>
-          </label>
+        <div className="crm-priority-toggles-grid crm-span-2">
+          <div className="crm-urgent-toggle-wrap">
+            <label className="crm-switch-label">
+              <input
+                type="checkbox"
+                name="isUrgent"
+                defaultChecked={Boolean(client?.isUrgent)}
+                className="crm-switch-input"
+              />
+              <span className="crm-switch-slider"></span>
+              <span className="crm-switch-text">
+                <span className="crm-fire-icon">🔥</span>
+                <strong>Срочный приоритет</strong>
+                <small>Немедленное внимание и связь в первую очередь</small>
+              </span>
+            </label>
+          </div>
+
+          <div className="crm-quality-toggle-wrap">
+            <label className="crm-switch-label">
+              <input
+                type="checkbox"
+                name="isQuality"
+                defaultChecked={Boolean(client?.isQuality)}
+                className="crm-switch-input"
+              />
+              <span className="crm-switch-slider crm-heart-slider"></span>
+              <span className="crm-switch-text">
+                <span className="crm-heart-icon">❤️</span>
+                <strong>Качественный заказ</strong>
+                <small>Хороший заказ, не срочный, но требует внимания</small>
+              </span>
+            </label>
+          </div>
         </div>
         <label>Компания<input name="companyName" defaultValue={client?.companyName} placeholder="Например, Orion Studio" /></label>
         <label>Контактное лицо<input name="contactName" defaultValue={client?.contactName} placeholder="Имя и фамилия" /></label>

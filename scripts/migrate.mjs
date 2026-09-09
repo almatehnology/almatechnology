@@ -295,6 +295,11 @@ migrate('011_client_is_urgent', `
   CREATE INDEX IF NOT EXISTS clients_is_urgent_idx ON clients(is_urgent);
 `);
 
+migrate('012_client_is_quality', `
+  ALTER TABLE clients ADD COLUMN is_quality INTEGER NOT NULL DEFAULT 0;
+  CREATE INDEX IF NOT EXISTS clients_is_quality_idx ON clients(is_quality);
+`);
+
 console.log(`Database is ready: ${databasePath}`);
 db.close();
 

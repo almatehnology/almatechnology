@@ -45,6 +45,11 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
                 🔥 Срочный приоритет
               </span>
             )}
+            {client.isQuality && (
+              <span className="crm-badge-quality" style={{ marginLeft: 8 }} title="Качественный заказ (сердечко)">
+                ❤️ Качественный заказ
+              </span>
+            )}
             <p>Ответственный: <strong>{client.ownerName}</strong></p>
           </div>
           <div className="crm-contact-links">

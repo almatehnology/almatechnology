@@ -213,12 +213,10 @@ export function ClientDetailTabs({
             <dl className="crm-data-list">
               <div>
                 <dt>Приоритет</dt>
-                <dd>
-                  {client.isUrgent ? (
-                    <span className="crm-badge-urgent">🔥 Срочный (максимальный)</span>
-                  ) : (
-                    'Обычный'
-                  )}
+                <dd style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                  {client.isUrgent && <span className="crm-badge-urgent">🔥 Срочный</span>}
+                  {client.isQuality && <span className="crm-badge-quality">❤️ Качественный заказ</span>}
+                  {!client.isUrgent && !client.isQuality && 'Обычный'}
                 </dd>
               </div>
               <div>

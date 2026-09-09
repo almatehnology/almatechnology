@@ -698,3 +698,125 @@ body {
   letter-spacing: 0.05em;
   box-shadow: 0 0 12px rgba(255, 87, 34, 0.25);
 }
+
+/* Priority Toggles Grid (Urgent 🔥 + Quality ❤️) */
+.crm-priority-toggles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 760px) {
+  .crm-priority-toggles-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.crm-quality-toggle-wrap {
+  display: flex;
+  align-items: center;
+  background: #191b21;
+  border: 1px solid #2e313b;
+  border-radius: 10px;
+  padding: 12px 16px;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.crm-quality-toggle-wrap:has(.crm-switch-input:checked) {
+  background: linear-gradient(90deg, rgba(233, 30, 99, 0.12) 0%, rgba(255, 64, 129, 0.05) 100%);
+  border-color: rgba(233, 30, 99, 0.5);
+  box-shadow: 0 0 16px rgba(233, 30, 99, 0.15);
+}
+
+.crm-switch-input:checked + .crm-heart-slider {
+  background: linear-gradient(135deg, #e91e63 0%, #ff4081 100%);
+  border-color: #f06292;
+  box-shadow: 0 0 12px rgba(233, 30, 99, 0.5);
+}
+
+.crm-switch-input:checked + .crm-heart-slider::before {
+  transform: translateX(20px);
+  background: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.crm-quality-toggle-wrap .crm-switch-input:checked ~ .crm-switch-text strong {
+  color: #f48fb1;
+}
+
+.crm-heart-icon {
+  font-size: 16px;
+  display: inline-block;
+}
+
+.crm-switch-input:checked ~ .crm-switch-text .crm-heart-icon {
+  animation: crmHeartBeat 1.4s ease-in-out infinite;
+}
+
+/* Quality Lead (Heart ❤️) row in clients table */
+.crm-table tr.crm-row-quality {
+  background: linear-gradient(90deg, rgba(233, 30, 99, 0.15) 0%, rgba(255, 64, 129, 0.07) 30%, rgba(233, 30, 99, 0.02) 100%) !important;
+}
+
+.crm-table tr.crm-row-quality:hover {
+  background: linear-gradient(90deg, rgba(233, 30, 99, 0.23) 0%, rgba(255, 64, 129, 0.12) 35%, rgba(233, 30, 99, 0.05) 100%) !important;
+}
+
+.crm-table tr.crm-row-quality td {
+  border-top-color: rgba(233, 30, 99, 0.35) !important;
+  border-bottom: 1px solid rgba(233, 30, 99, 0.35) !important;
+}
+
+.crm-table tr.crm-row-quality td:first-child {
+  border-left: 4px solid #e91e63 !important;
+  box-shadow: inset 4px 0 10px -2px rgba(233, 30, 99, 0.5);
+}
+
+.crm-title-quality {
+  color: #f8bbd0 !important;
+  font-weight: 800 !important;
+  text-shadow: 0 0 12px rgba(233, 30, 99, 0.35);
+}
+
+.crm-heart-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  animation: crmHeartBeat 1.8s ease-in-out infinite;
+}
+
+@keyframes crmHeartBeat {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 2px rgba(233, 30, 99, 0.5));
+  }
+  25% {
+    transform: scale(1.22);
+    filter: drop-shadow(0 0 7px rgba(233, 30, 99, 0.9));
+  }
+  45% {
+    transform: scale(1.08);
+  }
+  65% {
+    transform: scale(1.25);
+    filter: drop-shadow(0 0 8px rgba(233, 30, 99, 0.95));
+  }
+}
+
+.crm-badge-quality {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(233, 30, 99, 0.28), rgba(255, 64, 129, 0.2));
+  border: 1px solid rgba(233, 30, 99, 0.65);
+  color: #f8bbd0;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 0 12px rgba(233, 30, 99, 0.25);
+}
