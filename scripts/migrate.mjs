@@ -300,6 +300,11 @@ migrate('012_client_is_quality', `
   CREATE INDEX IF NOT EXISTS clients_is_quality_idx ON clients(is_quality);
 `);
 
+migrate('013_client_deadline_at', `
+  ALTER TABLE clients ADD COLUMN deadline_at TEXT;
+  CREATE INDEX IF NOT EXISTS clients_deadline_at_idx ON clients(deadline_at);
+`);
+
 console.log(`Database is ready: ${databasePath}`);
 db.close();
 

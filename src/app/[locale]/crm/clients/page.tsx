@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { Plus, Search } from 'lucide-react';
+import { Calendar, Plus, Search } from 'lucide-react';
 import { CrmShell } from '@/components/crm/CrmShell';
 import { listActiveUsers, listClients, SOURCE_CATEGORIES, type ClientFilters } from '@/lib/crm';
-import { formatBudgetRange, formatDateTime, sourceCategoryLabels, sourceCategoryShortLabels, statusLabels } from '@/lib/crm-format';
+import { formatBudgetRange, formatDateTime, getDeadlineInfo, sourceCategoryLabels, sourceCategoryShortLabels, statusLabels } from '@/lib/crm-format';
 import { requireUser } from '@/lib/session';
 
 type SearchParams = {
@@ -10,7 +10,8 @@ type SearchParams = {
   status?: string;
   ownerId?: string;
   search?: string;
-  attention?: 'overdue' | 'no_next_task' | 'urgent' | 'quality';
+  attention?: 'overdue' | 'no_next_task' | 'urgent' | 'quality' | 'deadline_active' | 'deadline_expired';
+  deadlineTo?: string;
   sourceCategory?: string;
   sourcePlatform?: string;
 };
@@ -25,6 +26,7 @@ export default async function ClientsPage({ params, searchParams }: { params: Pr
     ownerId: filters.ownerId,
     search: filters.search,
     attention: filters.attention,
+    deadlineTo: filters.deadlineTo,
     sourceCategory: filters.sourceCategory,
     sourcePlatform: filters.sourcePlatform,
   };
@@ -47,10 +49,24 @@ export default async function ClientsPage({ params, searchParams }: { params: Pr
       </select>
       <input name="sourcePlatform" defaultValue={selected.sourcePlatform || ''} placeholder="Площадка (Upwork, TG…)" style={{ minWidth: 150 }} />
       {(user.role === 'admin' || selected.scope === 'all') && <select name="ownerId" defaultValue={selected.ownerId || ''}><option value="">Все ответственные</option>{users.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>}
+      <div className="crm-filter-date" title="Календарь дедлайна: показать заказы, актуальные до выбранной даты">
+        <label htmlFor="deadlineTo">
+          <Calendar size={14} />
+          <span>Актуален до:</span>
+        </label>
+        <input
+          type="date"
+          id="deadlineTo"
+          name="deadlineTo"
+          defaultValue={selected.deadlineTo || ''}
+        />
+      </div>
       <select name="attention" defaultValue={selected.attention || ''}>
         <option value="">Все действия</option>
         <option value="urgent">🔥 Только срочные</option>
         <option value="quality">❤️ Только качественные (сердечко)</option>
+        <option value="deadline_active">⏳ С дедлайном (актуальные)</option>
+        <option value="deadline_expired">⚠️ Дедлайн истёк</option>
         <option value="overdue">Есть просрочка</option>
         <option value="no_next_task">Нет следующего шага</option>
       </select>
@@ -65,6 +81,7 @@ export default async function ClientsPage({ params, searchParams }: { params: Pr
               <th>Источник</th>
               <th>Ниша / локация</th>
               <th>Проблема и решение</th>
+              <th>Актуален до</th>
               <th>Статус</th>
               <th>Ответственный</th>
               <th>Следующее действие</th>
@@ -133,6 +150,22 @@ export default async function ClientsPage({ params, searchParams }: { params: Pr
                         return budget !== '—' ? `${client.suggestedService} · ${budget}` : client.suggestedService;
                       })()}
                     </small>
+                  </td>
+                  <td>
+                    {(() => {
+                      const deadline = getDeadlineInfo(client.deadlineAt);
+                      if (deadline.status === 'none') return <span className="crm-muted">—</span>;
+                      return (
+                        <div className="crm-deadline-cell">
+                          <strong>{deadline.formatted}</strong>
+                          {deadline.label && (
+                            <span className={`crm-deadline-tag ${deadline.status}`}>
+                              {deadline.label}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td>
                     <span className={`crm-status ${client.status.toLowerCase()}`}>

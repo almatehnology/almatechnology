@@ -212,6 +212,14 @@ export function ClientForm({
         <label>Город<input name="city" defaultValue={client?.city || ''} placeholder="Mendoza" /></label>
         <label>Ориентир бюджета от<input name="estimatedValue" type="number" min="0" step="0.01" defaultValue={client?.estimatedValue ?? ''} placeholder="200" /></label>
         <label>Ориентир бюджета до<input name="estimatedValueMax" type="number" min="0" step="0.01" defaultValue={client?.estimatedValueMax ?? ''} placeholder="500" /></label>
+        <label>
+          Актуален до (дедлайн заявки)
+          <input
+            name="deadlineAt"
+            type="date"
+            defaultValue={client?.deadlineAt ? client.deadlineAt.slice(0, 10) : ''}
+          />
+        </label>
         {client && (
           <>
             <label>Стоимость договора<input name="finalPrice" type="number" min="0" step="0.01" defaultValue={client?.finalPrice ?? ''} placeholder="400" /></label>

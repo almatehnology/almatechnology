@@ -73,6 +73,7 @@ function clientInput(formData: FormData): ClientInput {
     isQuality: formData.has('isQualitySubmitted')
       ? (value(formData, 'isQuality') === 'on' || value(formData, 'isQuality') === 'true')
       : (formData.has('isQuality') ? (value(formData, 'isQuality') === 'on' || value(formData, 'isQuality') === 'true') : undefined),
+    deadlineAt: formData.has('deadlineAt') ? (optionalValue(formData, 'deadlineAt') || null) : undefined,
     finalPrice: formData.has('finalPrice') ? (optionalValue(formData, 'finalPrice') ? Number(optionalValue(formData, 'finalPrice')) : null) : undefined,
     cashReceived: formData.has('cashReceived') ? (optionalValue(formData, 'cashReceived') ? Number(optionalValue(formData, 'cashReceived')) : null) : undefined,
     currency: optionalValue(formData, 'currency'),

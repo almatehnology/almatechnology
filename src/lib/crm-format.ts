@@ -90,3 +90,74 @@ export function formatBudgetRange(min?: number | null, max?: number | null, curr
   if (hasMax) return `до ${max} ${currency}`;
   return '—';
 }
+
+export type DeadlineInfo = {
+  formatted: string;
+  status: 'expired' | 'today' | 'urgent' | 'soon' | 'normal' | 'none';
+  label: string | null;
+  daysRemaining: number | null;
+};
+
+export function getDeadlineInfo(value?: string | null): DeadlineInfo {
+  if (!value) return { formatted: '—', status: 'none', label: null, daysRemaining: null };
+  const dateStr = value.slice(0, 10);
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return { formatted: '—', status: 'none', label: null, daysRemaining: null };
+
+  const year = Number(parts[0]);
+  const month = Number(parts[1]) - 1;
+  const day = Number(parts[2]);
+  if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
+    return { formatted: '—', status: 'none', label: null, daysRemaining: null };
+  }
+
+  const monthsGenitive = [
+    'янв.', 'февр.', 'марта', 'апр.', 'мая', 'июня',
+    'июля', 'авг.', 'сент.', 'окт.', 'нояб.', 'дек.'
+  ];
+  const formatted = `${day} ${monthsGenitive[month]} ${year}`;
+
+  const now = new Date();
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const targetMidnight = new Date(year, month, day);
+  const diffDays = Math.round((targetMidnight.getTime() - todayMidnight.getTime()) / 86400000);
+
+  if (diffDays < 0) {
+    return {
+      formatted,
+      status: 'expired',
+      label: 'Истёк',
+      daysRemaining: diffDays,
+    };
+  }
+  if (diffDays === 0) {
+    return {
+      formatted,
+      status: 'today',
+      label: 'Сегодня',
+      daysRemaining: 0,
+    };
+  }
+  if (diffDays === 1) {
+    return {
+      formatted,
+      status: 'urgent',
+      label: 'Завтра',
+      daysRemaining: 1,
+    };
+  }
+  if (diffDays <= 3) {
+    return {
+      formatted,
+      status: 'soon',
+      label: `Осталось ${diffDays} дн.`,
+      daysRemaining: diffDays,
+    };
+  }
+  return {
+    formatted,
+    status: 'normal',
+    label: `Осталось ${diffDays} дн.`,
+    daysRemaining: diffDays,
+  };
+}

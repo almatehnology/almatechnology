@@ -31,6 +31,7 @@ export type ClientInput = {
   estimatedValueMax?: number | null;
   isUrgent?: boolean;
   isQuality?: boolean;
+  deadlineAt?: string | null;
   finalPrice?: number | null;
   cashReceived?: number | null;
   currency?: string;
@@ -87,7 +88,8 @@ export type ClientFilters = {
   status?: string;
   ownerId?: string;
   search?: string;
-  attention?: 'overdue' | 'no_next_task' | 'urgent' | 'quality';
+  attention?: 'overdue' | 'no_next_task' | 'urgent' | 'quality' | 'deadline_active' | 'deadline_expired';
+  deadlineTo?: string;
   sourceCategory?: string;
   sourcePlatform?: string;
 };
@@ -115,6 +117,7 @@ export type ClientRow = {
   estimatedValueMax: number | null;
   isUrgent: boolean;
   isQuality: boolean;
+  deadlineAt: string | null;
   currency: string;
   status: ClientStatus;
   ownerId: string;
@@ -257,6 +260,7 @@ const clientProjection = `
   c.estimated_value_max AS estimatedValueMax,
   c.is_urgent AS isUrgent,
   c.is_quality AS isQuality,
+  c.deadline_at AS deadlineAt,
   c.currency AS currency,
   c.pipeline_stage AS status,
   c.owner_id AS ownerId,
@@ -374,6 +378,7 @@ function isEditor(client: Pick<ClientRow, 'ownerId'>, user: CurrentUser) {
 function mapClientRow(row: DbClientRow, user: CurrentUser): ClientRow {
   return {
     ...row,
+    deadlineAt: row.deadlineAt || null,
     isUrgent: Boolean(row.isUrgent),
     isQuality: Boolean(row.isQuality),
     canEdit: isEditor(row, user),
@@ -489,6 +494,18 @@ export function listClients(user: CurrentUser, filters: ClientFilters = {}): Cli
   if (filters.attention === 'quality') {
     conditions.push('c.is_quality = 1');
   }
+  if (filters.attention === 'deadline_active') {
+    conditions.push('c.deadline_at IS NOT NULL AND date(c.deadline_at) >= date(?)');
+    params.push(nowIso());
+  }
+  if (filters.attention === 'deadline_expired') {
+    conditions.push('c.deadline_at IS NOT NULL AND date(c.deadline_at) < date(?)');
+    params.push(nowIso());
+  }
+  if (filters.deadlineTo) {
+    conditions.push('c.deadline_at IS NOT NULL AND date(c.deadline_at) <= date(?)');
+    params.push(filters.deadlineTo);
+  }
 
   const rows = db
     .prepare(`
@@ -499,6 +516,8 @@ export function listClients(user: CurrentUser, filters: ClientFilters = {}): Cli
       ORDER BY
         c.is_urgent DESC,
         c.is_quality DESC,
+        CASE WHEN c.deadline_at IS NOT NULL THEN 0 ELSE 1 END,
+        c.deadline_at ASC,
         CASE WHEN EXISTS (SELECT 1 FROM tasks t WHERE t.client_id = c.id AND t.status = 'OPEN' AND t.due_at < ?) THEN 0 ELSE 1 END,
         nextTaskAt IS NULL,
         nextTaskAt ASC,
@@ -626,7 +645,7 @@ export function createClient(user: CurrentUser, input: ClientInput) {
       id, company_name, contact_name, position, email, phone, messenger, website,
       source, source_category, source_platform, source_detail, source_url,
       country, city, industry,
-      observed_problem, suggested_service, estimated_value, estimated_value_max, is_urgent, is_quality, currency, status, pipeline_stage,
+      observed_problem, suggested_service, estimated_value, estimated_value_max, is_urgent, is_quality, deadline_at, currency, status, pipeline_stage,
       researcher_commission_rate, verifier_commission_rate, sdr_commission_rate, closer_commission_rate,
       owner_id, created_by_id, researcher_id, verifier_owner_id, ownership_expires_at, general_notes,
       normalized_email, normalized_phone, created_at, updated_at
@@ -634,7 +653,7 @@ export function createClient(user: CurrentUser, input: ClientInput) {
       ?, ?, ?, ?, ?, ?, ?, ?,
       ?, ?, ?, ?, ?,
       ?, ?, ?,
-      ?, ?, ?, ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
       ?, ?, ?, ?,
       ?, ?, ?, ?, ?, ?,
       ?, ?, ?, ?
@@ -662,6 +681,7 @@ export function createClient(user: CurrentUser, input: ClientInput) {
     Number.isFinite(input.estimatedValueMax) ? input.estimatedValueMax : null,
     input.isUrgent ? 1 : 0,
     input.isQuality ? 1 : 0,
+    text(input.deadlineAt) || null,
     text(input.currency) || 'USD',
     'NEW',
     'RESEARCH',
@@ -703,6 +723,9 @@ export function updateClient(user: CurrentUser, clientId: string, input: ClientI
   const nextIsQuality = input.isQuality !== undefined
     ? (input.isQuality ? 1 : 0)
     : (client.isQuality ? 1 : 0);
+  const nextDeadlineAt = input.deadlineAt !== undefined
+    ? (text(input.deadlineAt) || null)
+    : client.deadlineAt;
   const nextFinalPrice = input.finalPrice !== undefined
     ? (Number.isFinite(input.finalPrice) ? input.finalPrice : null)
     : client.finalPrice;
@@ -716,7 +739,7 @@ export function updateClient(user: CurrentUser, clientId: string, input: ClientI
       company_name = ?, contact_name = ?, position = ?, email = ?, phone = ?, messenger = ?, website = ?,
       source = ?, source_category = ?, source_platform = ?, source_detail = ?, source_url = ?,
       country = ?, city = ?, industry = ?, observed_problem = ?, suggested_service = ?,
-      estimated_value = ?, estimated_value_max = ?, is_urgent = ?, is_quality = ?, final_price = ?, deal_amount = ?, cash_received = ?, currency = ?,
+      estimated_value = ?, estimated_value_max = ?, is_urgent = ?, is_quality = ?, deadline_at = ?, final_price = ?, deal_amount = ?, cash_received = ?, currency = ?,
       general_notes = ?, normalized_email = ?, normalized_phone = ?,
       updated_at = ?, version = version + 1
     WHERE id = ? AND version = ?
@@ -730,6 +753,7 @@ export function updateClient(user: CurrentUser, clientId: string, input: ClientI
     nextEstimatedValueMax,
     nextIsUrgent,
     nextIsQuality,
+    nextDeadlineAt,
     nextFinalPrice,
     nextFinalPrice,
     nextCashReceived,

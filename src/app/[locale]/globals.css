@@ -820,3 +820,138 @@ body {
   letter-spacing: 0.05em;
   box-shadow: 0 0 12px rgba(233, 30, 99, 0.25);
 }
+
+/* Deadline Filter Calendar & Table Column Styles */
+.crm-filter-date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #181a1e;
+  border: 1px solid #363943;
+  border-radius: 8px;
+  padding: 0 11px;
+  min-height: 39px;
+}
+
+.crm-filter-date label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #9ea4b0;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.crm-filter-date label svg {
+  color: var(--color-accent);
+}
+
+.crm-filter-date input[type="date"] {
+  background: transparent !important;
+  border: 0 !important;
+  color: #f1f3f6 !important;
+  padding: 0 !important;
+  font-size: 12.5px !important;
+  min-width: 125px !important;
+  cursor: pointer;
+}
+
+.crm-filter-date input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.85);
+  cursor: pointer;
+}
+
+.crm-deadline-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+}
+
+.crm-deadline-cell strong {
+  font-size: 13px;
+  font-weight: 650;
+  color: #f0f2f5;
+  white-space: nowrap;
+}
+
+.crm-deadline-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 750;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.crm-deadline-tag.expired {
+  background: #3b171c;
+  border: 1px solid #73262e;
+  color: #ff919a;
+}
+
+.crm-deadline-tag.today {
+  background: #3d2410;
+  border: 1px solid #995217;
+  color: #ffb164;
+  animation: crmPulseFire 1.6s ease-in-out infinite;
+}
+
+.crm-deadline-tag.urgent {
+  background: #392e13;
+  border: 1px solid #856a20;
+  color: #ffd76f;
+}
+
+.crm-deadline-tag.soon {
+  background: #252e1b;
+  border: 1px solid #576d37;
+  color: #c7e596;
+}
+
+.crm-deadline-tag.normal {
+  background: #1d2027;
+  border: 1px solid #2f3440;
+  color: #989fae;
+}
+
+.crm-deadline-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.crm-deadline-header-badge.expired {
+  background: #3a1519;
+  border: 1px solid #7a2831;
+  color: #ff8e97;
+}
+
+.crm-deadline-header-badge.today {
+  background: #3d230e;
+  border: 1px solid #9c5215;
+  color: #ffb162;
+}
+
+.crm-deadline-header-badge.urgent {
+  background: #3a2c11;
+  border: 1px solid #8a6a1d;
+  color: #ffd66b;
+}
+
+.crm-deadline-header-badge.soon,
+.crm-deadline-header-badge.normal {
+  background: #1d2128;
+  border: 1px solid #363c48;
+  color: #ccd2dc;
+}

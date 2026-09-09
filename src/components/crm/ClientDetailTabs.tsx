@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import type { ClientRow, TaskRow, InteractionRow, TransferRow, ReviewRow, PipelineEventRow } from '@/lib/crm';
 import type { SalesRole } from '@/lib/crm-types';
-import { formatBudgetRange, formatDateTime, interactionChannelLabels, sourceCategoryLabels, statusLabels } from '@/lib/crm-format';
+import { formatBudgetRange, formatDateTime, getDeadlineInfo, interactionChannelLabels, sourceCategoryLabels, statusLabels } from '@/lib/crm-format';
 import { TaskCard } from './TaskCard';
 import { ClientForm } from './ClientForm';
 import { ArchiveClientButton } from './ArchiveClientButton';
@@ -266,28 +266,47 @@ export function ClientDetailTabs({
               <div><dt>16. Decision maker</dt><dd>{client.decisionMaker || '—'}</dd></div>
               <div><dt>17. Бюджет клиента</dt><dd>{client.budgetNotes || '—'}</dd></div>
               <div><dt>18. Желаемый срок</dt><dd>{client.desiredTimeline || '—'}</dd></div>
-              <div><dt>19. Последний контакт</dt><dd>{formatDateTime(client.lastContactAt)}</dd></div>
-              <div><dt>20. Техническая оценка</dt><dd>{client.technicalEstimateNeeded ? 'Нужна' : 'Нет'}</dd></div>
-              <div><dt>21. Срок владения до</dt><dd>{formatDateTime(client.ownershipExpiresAt)}</dd></div>
+              <div>
+                <dt>19. Актуален до (дедлайн)</dt>
+                <dd>
+                  {(() => {
+                    const deadline = getDeadlineInfo(client.deadlineAt);
+                    if (deadline.status === 'none') return '—';
+                    return (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <strong>{deadline.formatted}</strong>
+                        {deadline.label && (
+                          <span className={`crm-deadline-tag ${deadline.status}`}>
+                            {deadline.label}
+                          </span>
+                        )}
+                      </span>
+                    );
+                  })()}
+                </dd>
+              </div>
+              <div><dt>20. Последний контакт</dt><dd>{formatDateTime(client.lastContactAt)}</dd></div>
+              <div><dt>21. Техническая оценка</dt><dd>{client.technicalEstimateNeeded ? 'Нужна' : 'Нет'}</dd></div>
+              <div><dt>22. Срок владения до</dt><dd>{formatDateTime(client.ownershipExpiresAt)}</dd></div>
             </dl>
 
             <div className="crm-insight">
-              <small>22. ЗАМЕЧЕННАЯ ПРОБЛЕМА</small>
+              <small>23. ЗАМЕЧЕННАЯ ПРОБЛЕМА</small>
               <p className={client.observedProblem ? '' : 'crm-muted'}>{client.observedProblem || '—'}</p>
             </div>
             <div className="crm-insight">
-              <small>23. СОГЛАСОВАННОЕ РЕШЕНИЕ</small>
+              <small>24. СОГЛАСОВАННОЕ РЕШЕНИЕ</small>
               <p className={client.suggestedService ? '' : 'crm-muted'}>{client.suggestedService || '—'}</p>
             </div>
             {client.discoveryNotes && (
               <div className="crm-insight">
-                <small>24. DISCOVERY</small>
+                <small>25. DISCOVERY</small>
                 <p>{client.discoveryNotes}</p>
               </div>
             )}
             {client.generalNotes && (
               <div className="crm-insight">
-                <small>25. ЗАМЕТКИ</small>
+                <small>26. ЗАМЕТКИ</small>
                 <p>{client.generalNotes}</p>
               </div>
             )}

@@ -6,7 +6,7 @@ import { ClientDetailTabs } from '@/components/crm/ClientDetailTabs';
 import { CrmShell } from '@/components/crm/CrmShell';
 import { PipelineStepper } from '@/components/crm/PipelineStepper';
 import { getClientDetails, listActiveUsers } from '@/lib/crm';
-import { statusLabels } from '@/lib/crm-format';
+import { getDeadlineInfo, statusLabels } from '@/lib/crm-format';
 import { requireUser } from '@/lib/session';
 
 export default async function ClientDetailsPage({ params }: { params: Promise<{ locale: string; id: string }> }) {
@@ -16,6 +16,7 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
   if (!details) notFound();
   const { client, interactions, tasks, transfers, reviews, pipelineEvents } = details;
   const users = listActiveUsers().map((item) => ({ id: item.id, name: item.name, salesRoles: item.salesRoles }));
+  const deadline = getDeadlineInfo(client.deadlineAt);
   const title = (client.companyName && client.companyName.trim() !== '-')
     ? client.companyName
     : (client.contactName?.trim() || client.suggestedService || client.sourcePlatform || 'Лид');
@@ -48,6 +49,11 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
             {client.isQuality && (
               <span className="crm-badge-quality" style={{ marginLeft: 8 }} title="Качественный заказ (сердечко)">
                 ❤️ Качественный заказ
+              </span>
+            )}
+            {deadline.status !== 'none' && (
+              <span className={`crm-deadline-header-badge ${deadline.status}`} style={{ marginLeft: 8 }} title="Срок актуальности заказа">
+                📅 Актуален до: {deadline.formatted} {deadline.label ? `(${deadline.label})` : ''}
               </span>
             )}
             <p>Ответственный: <strong>{client.ownerName}</strong></p>
