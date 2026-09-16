@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Bot, AppWindow, Blocks, Globe, Wrench } from 'lucide-react';
+import { Bot, AppWindow, Blocks, Globe, Smartphone, Wrench } from 'lucide-react';
 import { Container } from '@/components/ui/Container';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Card } from '@/components/ui/Card';
@@ -14,6 +14,7 @@ const iconMap: Record<string, ReactNode> = {
   AppWindow: <AppWindow size={28} />,
   Blocks: <Blocks size={28} />,
   Globe: <Globe size={28} />,
+  Smartphone: <Smartphone size={28} />,
   Wrench: <Wrench size={28} />,
 };
 

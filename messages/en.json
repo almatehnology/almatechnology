@@ -41,6 +41,10 @@
       "title": "Websites & Landing Pages",
       "description": "Corporate websites, e-commerce stores and high-converting landing pages"
     },
+    "mobile": {
+      "title": "Mobile Applications",
+      "description": "Cross-platform and native apps for iOS and Android built with React Native and Flutter"
+    },
     "support": {
       "title": "Support & Maintenance",
       "description": "Technical support, performance optimization and ongoing project development"
@@ -139,6 +143,7 @@
     "reviews": "Reviews",
     "serviceBots": "Telegram Bots",
     "serviceWebapps": "Web Applications",
+    "serviceMobile": "Mobile Applications",
     "serviceProducts": "Complex IT Products",
     "serviceWebsites": "Websites & Landing Pages",
     "blog": "Blog",

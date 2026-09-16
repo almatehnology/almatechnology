@@ -51,6 +51,7 @@ export function Footer() {
             <ul className="space-y-3 text-sm text-foreground-muted">
               <li><a href="#services" className="transition-colors hover:text-accent">{t('serviceBots')}</a></li>
               <li><a href="#services" className="transition-colors hover:text-accent">{t('serviceWebapps')}</a></li>
+              <li><a href="#services" className="transition-colors hover:text-accent">{t('serviceMobile')}</a></li>
               <li><a href="#services" className="transition-colors hover:text-accent">{t('serviceProducts')}</a></li>
               <li><a href="#services" className="transition-colors hover:text-accent">{t('serviceWebsites')}</a></li>
             </ul>
