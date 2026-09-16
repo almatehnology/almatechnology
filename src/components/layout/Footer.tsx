@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { Container } from '@/components/ui/Container';
-import { CONTACT_EMAIL, TELEGRAM_URL } from '@/lib/constants';
+import { CONTACT_EMAIL, TELEGRAM_URL, TELEGRAM_USERNAME } from '@/lib/constants';
 import { Send, Mail, Code2 } from 'lucide-react';
 
 export function Footer() {
@@ -79,7 +79,7 @@ export function Footer() {
               </li>
               <li>
                 <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-accent">
-                  Telegram
+                  Telegram ({TELEGRAM_USERNAME})
                 </a>
               </li>
             </ul>

@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { AnimateOnScroll } from '@/components/ui/AnimateOnScroll';
 import { contactFormSchema, type ContactFormData } from '@/lib/validations';
-import { CONTACT_EMAIL, TELEGRAM_URL } from '@/lib/constants';
+import { CONTACT_EMAIL, TELEGRAM_URL, TELEGRAM_USERNAME } from '@/lib/constants';
 
 export function ContactForm() {
   const t = useTranslations('Contact');
@@ -137,7 +137,7 @@ export function ContactForm() {
                     rel="noopener noreferrer"
                     className="text-lg font-medium text-foreground hover:text-accent transition-colors"
                   >
-                    @almatechnology
+                    {TELEGRAM_USERNAME}
                   </a>
                 </div>
 
